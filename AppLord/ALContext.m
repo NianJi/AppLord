@@ -64,7 +64,6 @@
                 [module moduleDidInit:self];
             }
         }
-        [_moduleClassesByInitEventId removeObjectForKey:@(eventId)];
     }
 }
 
@@ -79,7 +78,6 @@
                 [module moduleStart:self];
             }
         }
-        [_moduleClassesByStartEventId removeObjectForKey:@(eventId)];
     }
 }
 
@@ -167,7 +165,7 @@
     NSParameterAssert(moduleClass != nil);
     
     if (![moduleClass conformsToProtocol:@protocol(ALModule)]) {
-        @throw [NSException exceptionWithName:NSInternalInconsistencyException reason:[NSString stringWithFormat:@"%@ 模块不符合 %@ 协议", NSStringFromClass(moduleClass), @"ALModule"] userInfo:nil];
+        @throw [NSException exceptionWithName:NSInternalInconsistencyException reason:[NSString stringWithFormat:@"%@ 模块不符合 ALModule 协议", NSStringFromClass(moduleClass)] userInfo:nil];
     }
     
     if ([_moduleClassesByName objectForKey:NSStringFromClass(moduleClass)]) {
