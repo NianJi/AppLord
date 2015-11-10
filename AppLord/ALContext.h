@@ -22,7 +22,7 @@
 - (__nullable id)findModule:(Class _Nonnull)moduleClass;
 
 - (void)sendEvent:(ALEvent *_Nonnull)event;
-- (void)sendEventWithId:(ALEventId)eventId userInfo:(NSDictionary *_Nullable)userInfo;
+- (void)sendEventWithId:(NSString *_Nonnull)eventId userInfo:(NSDictionary *_Nullable)userInfo;
 
 - (void)registService:(Protocol *_Nonnull)proto withImpl:(Class _Nonnull)implClass;
 - (void)registModule:(Class _Nonnull)moduleClass;

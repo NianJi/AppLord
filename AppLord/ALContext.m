@@ -53,9 +53,9 @@
     return self;
 }
 
-- (void)loadModulesWithEventId:(ALEventId)eventId
+- (void)loadModulesWithEventId:(NSString *)eventId
 {
-    NSArray *initModules = [_moduleClassesByInitEventId objectForKey:@(eventId)];
+    NSArray *initModules = [_moduleClassesByInitEventId objectForKey:eventId];
     if (initModules.count) {
         for (Class cls in initModules) {
             id<ALModule> module = [[cls alloc] init];
@@ -67,9 +67,9 @@
     }
 }
 
-- (void)startModulesWithEventId:(ALEventId)eventId
+- (void)startModulesWithEventId:(NSString *)eventId
 {
-    NSArray *startModules = [_moduleClassesByStartEventId objectForKey:@(eventId)];
+    NSArray *startModules = [_moduleClassesByStartEventId objectForKey:eventId];
     if (startModules.count) {
         for (Class cls in startModules) {
             id<ALModule> module = [_modulesByName objectForKey:NSStringFromClass(cls)];
@@ -108,7 +108,7 @@
 
 - (void)sendEvent:(ALEvent *)event
 {
-    ALEventId eventId = event.eventId;
+    NSString *eventId = event.eventId;
     
     // 初始化module
     [self loadModulesWithEventId:eventId];
@@ -124,7 +124,7 @@
     }
 }
 
-- (void)sendEventWithId:(ALEventId)eventId userInfo:(NSDictionary *)userInfo
+- (void)sendEventWithId:(NSString *)eventId userInfo:(NSDictionary *)userInfo
 {
     ALEvent *event = [ALEvent eventWithId:eventId userInfo:userInfo];
     [self sendEvent:event];
@@ -183,32 +183,34 @@
         
         // initEventId
         {
-            ALEventId initEventId = ALEventAppLaunching;
+            NSString *initEventId = ALEventAppLaunching;
             if ([moduleClass resolveClassMethod:@selector(preferredInitEventId)]) {
                 initEventId = [moduleClass preferredInitEventId];
+                NSParameterAssert(initEventId);
             }
             
-            NSMutableArray *initEventArray = [[_moduleClassesByInitEventId objectForKey:@(initEventId)] mutableCopy];
+            NSMutableArray *initEventArray = [[_moduleClassesByInitEventId objectForKey:initEventId] mutableCopy];
             if (!initEventArray) {
                 initEventArray = [[NSMutableArray alloc] init];
             }
             [initEventArray addObject:moduleClass];
-            [_moduleClassesByInitEventId setObject:initEventArray.copy forKey:@(initEventId)];
+            [_moduleClassesByInitEventId setObject:initEventArray.copy forKey:initEventId];
         }
         
         // startEvent
         {
-            ALEventId startEventId = ALEventAppLaunching;
+            NSString *startEventId = ALEventAppLaunching;
             if ([moduleClass resolveClassMethod:@selector(preferredStartEventId)]) {
                 startEventId = [moduleClass preferredStartEventId];
+                NSParameterAssert(startEventId);
             }
             
-            NSMutableArray *startEventArray = [[_moduleClassesByStartEventId objectForKey:@(startEventId)] mutableCopy];
+            NSMutableArray *startEventArray = [[_moduleClassesByStartEventId objectForKey:startEventId] mutableCopy];
             if (!startEventArray) {
                 startEventArray = [[NSMutableArray alloc] init];
             }
             [startEventArray addObject:moduleClass];
-            [_moduleClassesByStartEventId setObject:startEventArray.copy forKey:@(startEventId)];
+            [_moduleClassesByStartEventId setObject:startEventArray.copy forKey:startEventId];
         }
     }
 }
