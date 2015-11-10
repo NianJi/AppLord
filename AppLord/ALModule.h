@@ -41,8 +41,8 @@
  *  这两个是配置方法，默认module在ALEventAppFirstLoad时执行 init 和 start，
  *  如果没有必要在启动就初始化或开始运行，那么就可以在这里配置接收到特定的eventId事件时才init或者start.
  */
-+ (ALEventId)preferredInitEventId;
-+ (ALEventId)preferredStartEventId;
++ (NSString *_Nonnull)preferredInitEventId;
++ (NSString *_Nonnull)preferredStartEventId;
 
 @end
 
