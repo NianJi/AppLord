@@ -15,11 +15,12 @@
     NSMutableDictionary     *_modulesByName;
     NSMutableDictionary     *_moduleClassesByName;
     NSMutableDictionary     *_moduleClassesByInitEventId;
-    NSMutableDictionary     *_moduleClassesByStartEventId;
+    NSMutableDictionary     *_modulesByStartEventId;
 
     NSMutableDictionary     *_servicesByName;
     NSMutableDictionary     *_serviceClassesByName;
     
+    BOOL                     _finishedStart;
 }
 
 @end
@@ -43,7 +44,7 @@
         _modulesByName = [[NSMutableDictionary alloc] init];
         _moduleClassesByName = [[NSMutableDictionary alloc] init];
         _moduleClassesByInitEventId = [[NSMutableDictionary alloc] init];
-        _moduleClassesByStartEventId = [[NSMutableDictionary alloc] init];
+        _modulesByStartEventId = [[NSMutableDictionary alloc] init];
 
         _servicesByName = [[NSMutableDictionary alloc] init];
         _serviceClassesByName = [[NSMutableDictionary alloc] init];
@@ -58,10 +59,31 @@
     NSArray *initModules = [_moduleClassesByInitEventId objectForKey:eventId];
     if (initModules.count) {
         for (Class cls in initModules) {
-            id<ALModule> module = [[cls alloc] init];
-            [_modulesByName setObject:module forKey:NSStringFromClass(cls)];
-            if ([module respondsToSelector:@selector(moduleDidInit:)]) {
-                [module moduleDidInit:self];
+            NSString *key = NSStringFromClass(cls);
+            id<ALModule> module = [_modulesByName objectForKey:key];
+            if (!module) {
+                module = [[cls alloc] init];
+                [_modulesByName setObject:module forKey:key];
+                if ([module respondsToSelector:@selector(moduleDidInit:)]) {
+                    [module moduleDidInit:self];
+                }
+                
+                // make module record in start event
+                NSString *startEventId = _finishedStart ? nil : ALEventAppLaunching;
+                if ([cls resolveClassMethod:@selector(preferredStartEventId)]) {
+                    startEventId = [cls preferredStartEventId];
+                    NSParameterAssert(startEventId);
+                }
+                
+                if (startEventId) {
+                    NSMutableArray *startEventArray = [[_modulesByStartEventId objectForKey:startEventId] mutableCopy];
+                    if (!startEventArray) {
+                        startEventArray = [[NSMutableArray alloc] init];
+                    }
+                    [startEventArray addObject:module];
+                    [_modulesByStartEventId setObject:startEventArray.copy forKey:startEventId];
+                }
+                
             }
         }
     }
@@ -69,15 +91,14 @@
 
 - (void)startModulesWithEventId:(NSString *)eventId
 {
-    NSArray *startModules = [_moduleClassesByStartEventId objectForKey:eventId];
+    NSArray *startModules = [_modulesByStartEventId objectForKey:eventId];
     if (startModules.count) {
-        for (Class cls in startModules) {
-            id<ALModule> module = [_modulesByName objectForKey:NSStringFromClass(cls)];
-            NSAssert(module, @"%@ 模块还没有初始化", NSStringFromClass(cls));
+        for (id<ALModule> module in startModules) {
             if ([module respondsToSelector:@selector(moduleStart:)]) {
                 [module moduleStart:self];
             }
         }
+        [_modulesByStartEventId removeObjectForKey:eventId];
     }
 }
 
@@ -181,37 +202,18 @@
     NSArray *moduleClassArray = _moduleClassesByName.allValues;
     for (Class moduleClass in moduleClassArray) {
         
-        // initEventId
-        {
-            NSString *initEventId = ALEventAppLaunching;
-            if ([moduleClass resolveClassMethod:@selector(preferredInitEventId)]) {
-                initEventId = [moduleClass preferredInitEventId];
-                NSParameterAssert(initEventId);
-            }
-            
-            NSMutableArray *initEventArray = [[_moduleClassesByInitEventId objectForKey:initEventId] mutableCopy];
-            if (!initEventArray) {
-                initEventArray = [[NSMutableArray alloc] init];
-            }
-            [initEventArray addObject:moduleClass];
-            [_moduleClassesByInitEventId setObject:initEventArray.copy forKey:initEventId];
+        NSString *initEventId = ALEventAppLaunching;
+        if ([moduleClass resolveClassMethod:@selector(preferredInitEventId)]) {
+            initEventId = [moduleClass preferredInitEventId];
+            NSParameterAssert(initEventId);
         }
         
-        // startEvent
-        {
-            NSString *startEventId = ALEventAppLaunching;
-            if ([moduleClass resolveClassMethod:@selector(preferredStartEventId)]) {
-                startEventId = [moduleClass preferredStartEventId];
-                NSParameterAssert(startEventId);
-            }
-            
-            NSMutableArray *startEventArray = [[_moduleClassesByStartEventId objectForKey:startEventId] mutableCopy];
-            if (!startEventArray) {
-                startEventArray = [[NSMutableArray alloc] init];
-            }
-            [startEventArray addObject:moduleClass];
-            [_moduleClassesByStartEventId setObject:startEventArray.copy forKey:startEventId];
+        NSMutableArray *initEventArray = [[_moduleClassesByInitEventId objectForKey:initEventId] mutableCopy];
+        if (!initEventArray) {
+            initEventArray = [[NSMutableArray alloc] init];
         }
+        [initEventArray addObject:moduleClass];
+        [_moduleClassesByInitEventId setObject:initEventArray.copy forKey:initEventId];
     }
 }
 
@@ -231,6 +233,7 @@
     self.info.launchOptions = launchOptions;
     [self configurationModules];
     [self sendEventWithId:ALEventAppLaunching userInfo:launchOptions];
+    _finishedStart = YES;
 }
 
 @end
