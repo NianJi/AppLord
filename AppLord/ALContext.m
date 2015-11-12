@@ -21,6 +21,7 @@
     NSMutableDictionary     *_serviceClassesByName;
     
     NSMutableDictionary     *_observerSetsByEventId;
+    NSRecursiveLock         *_observerLock;
     
     BOOL                     _finishedStart;
 }
@@ -52,6 +53,7 @@
         _serviceClassesByName = [[NSMutableDictionary alloc] init];
         
         _observerSetsByEventId = [[NSMutableDictionary alloc] init];
+        _observerLock = [[NSRecursiveLock alloc] init];
         
         _info = [[ALContextInfo alloc] init];
     }
@@ -142,13 +144,20 @@
         [self startModulesWithEventId:eventId];
         
         // 发送事件
+        [_observerLock lock];
         NSHashTable *observerSet = [[_observerSetsByEventId objectForKey:eventId] copy];
-        NSEnumerator *enumerator = observerSet.objectEnumerator;
-        id<ALModule> module = nil;
-        while ((module = enumerator.nextObject)) {
-            if ([module respondsToSelector:@selector(moduleDidReceiveEvent:)]) {
-                [module moduleDidReceiveEvent:event];
+        if (observerSet.count) {
+            [_observerLock unlock];
+            NSEnumerator *enumerator = observerSet.objectEnumerator;
+            id<ALModule> module = nil;
+            while ((module = enumerator.nextObject)) {
+                if ([module respondsToSelector:@selector(moduleDidReceiveEvent:)]) {
+                    [module moduleDidReceiveEvent:event];
+                }
             }
+        } else if (observerSet) {
+            [_observerSetsByEventId removeObjectForKey:eventId];
+            [_observerLock unlock];
         }
     };
     if ([NSThread isMainThread]) {
@@ -169,12 +178,15 @@
     if (!observer || !eventId.length) {
         return;
     }
+    
+    [_observerLock lock];
     NSHashTable *observerSet = [_observerSetsByEventId objectForKey:eventId];
     if (!observerSet) {
         observerSet = [[NSHashTable alloc] initWithOptions:NSPointerFunctionsWeakMemory capacity:0];
         [_observerSetsByEventId setObject:observerSet forKey:eventId];
     }
     [observerSet addObject:observer];
+    [_observerLock unlock];
 }
 
 - (void)addEventObserver:(id)observer forEventIdArray:(NSArray *)eventIdArray
