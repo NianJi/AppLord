@@ -23,6 +23,8 @@
 
 - (void)sendEvent:(ALEvent *_Nonnull)event;
 - (void)sendEventWithId:(NSString *_Nonnull)eventId userInfo:(NSDictionary *_Nullable)userInfo;
+- (void)addEventObserver:(id _Nonnull)observer forEventId:(NSString *_Nonnull)eventId;
+- (void)addEventObserver:(id _Nonnull)observer forEventIdArray:(NSArray *_Nonnull)eventIdArray;
 
 - (void)registService:(Protocol *_Nonnull)proto withImpl:(Class _Nonnull)implClass;
 - (void)registModule:(Class _Nonnull)moduleClass;

@@ -39,11 +39,13 @@ AL_EXPORT_MODULE
 {
     self.window.rootViewController = self.tabBarController;
     [self.window makeKeyAndVisible];
+    
+    [[ALContext sharedContext] addEventObserver:self forEventId:ALEventAppDidBecomeActive];
 }
 
-- (void)moduleDidReceiveEvent:(ALEvent *)context
+- (void)moduleDidReceiveEvent:(ALEvent *)event
 {
-    
+    NSLog(@"Receive event: %@", event.eventId);
 }
 
 @end
