@@ -35,7 +35,7 @@
 /**
  *  接收到了全局的事件
  */
-- (void)moduleDidReceiveEvent:(ALEvent *_Nonnull)context;
+- (void)moduleDidReceiveEvent:(ALEvent *_Nonnull)event;
 
 /**
  *  这两个是配置方法，默认module在ALEventAppFirstLoad时执行 init 和 start，

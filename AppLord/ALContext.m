@@ -20,6 +20,8 @@
     NSMutableDictionary     *_servicesByName;
     NSMutableDictionary     *_serviceClassesByName;
     
+    NSMutableDictionary     *_observerSetsByEventId;
+    
     BOOL                     _finishedStart;
 }
 
@@ -48,6 +50,8 @@
 
         _servicesByName = [[NSMutableDictionary alloc] init];
         _serviceClassesByName = [[NSMutableDictionary alloc] init];
+        
+        _observerSetsByEventId = [[NSMutableDictionary alloc] init];
         
         _info = [[ALContextInfo alloc] init];
     }
@@ -129,19 +133,28 @@
 
 - (void)sendEvent:(ALEvent *)event
 {
-    NSString *eventId = event.eventId;
-    
-    // 初始化module
-    [self loadModulesWithEventId:eventId];
-    // 开始module
-    [self startModulesWithEventId:eventId];
-    
-    // 发送事件
-    NSArray *modules = _modulesByName.allValues;
-    for (id<ALModule> module in modules) {
-        if ([module respondsToSelector:@selector(moduleDidReceiveEvent:)]) {
-            [module moduleDidReceiveEvent:event];
+    dispatch_block_t doSend = ^{
+        NSString *eventId = event.eventId;
+        
+        // 初始化module
+        [self loadModulesWithEventId:eventId];
+        // 开始module
+        [self startModulesWithEventId:eventId];
+        
+        // 发送事件
+        NSHashTable *observerSet = [[_observerSetsByEventId objectForKey:eventId] copy];
+        NSEnumerator *enumerator = observerSet.objectEnumerator;
+        id<ALModule> module = nil;
+        while ((module = enumerator.nextObject)) {
+            if ([module respondsToSelector:@selector(moduleDidReceiveEvent:)]) {
+                [module moduleDidReceiveEvent:event];
+            }
         }
+    };
+    if ([NSThread isMainThread]) {
+        doSend();
+    } else {
+        dispatch_async(dispatch_get_main_queue(), doSend);
     }
 }
 
@@ -149,6 +162,26 @@
 {
     ALEvent *event = [ALEvent eventWithId:eventId userInfo:userInfo];
     [self sendEvent:event];
+}
+
+- (void)addEventObserver:(id)observer forEventId:(NSString *)eventId
+{
+    if (!observer || !eventId.length) {
+        return;
+    }
+    NSHashTable *observerSet = [_observerSetsByEventId objectForKey:eventId];
+    if (!observerSet) {
+        observerSet = [[NSHashTable alloc] initWithOptions:NSPointerFunctionsWeakMemory capacity:0];
+        [_observerSetsByEventId setObject:observerSet forKey:eventId];
+    }
+    [observerSet addObject:observer];
+}
+
+- (void)addEventObserver:(id)observer forEventIdArray:(NSArray *)eventIdArray
+{
+    for (NSString *eventId in eventIdArray) {
+        [self addEventObserver:observer forEventId:eventId];
+    }
 }
 
 - (void)registService:(Protocol *)proto withImpl:(Class)implClass
