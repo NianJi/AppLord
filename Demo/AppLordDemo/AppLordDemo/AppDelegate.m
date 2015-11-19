@@ -19,7 +19,8 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
     
-    [ALContextGet() setupWithLaunchOptions:launchOptions];
+    NSArray *launchTasks = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"ALLaunchTasks"];
+    [ALContextGet() setupWithLaunchOptions:launchOptions launchTask:launchTasks];
     return YES;
 }
 

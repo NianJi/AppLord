@@ -19,6 +19,12 @@
 		A371C2981BF0C19900A7D4C7 /* ALEvent.m in Sources */ = {isa = PBXBuildFile; fileRef = A371C2911BF0C19900A7D4C7 /* ALEvent.m */; };
 		A371C29C1BF0C3E300A7D4C7 /* TabBarLauncherModule.m in Sources */ = {isa = PBXBuildFile; fileRef = A371C29B1BF0C3E300A7D4C7 /* TabBarLauncherModule.m */; };
 		A371C2A01BF0CACA00A7D4C7 /* TabBarServiceImpl.m in Sources */ = {isa = PBXBuildFile; fileRef = A371C29F1BF0CACA00A7D4C7 /* TabBarServiceImpl.m */; };
+		A3D1F7051BFDF1E700E3D16F /* ALTask.m in Sources */ = {isa = PBXBuildFile; fileRef = A3D1F7041BFDF1E700E3D16F /* ALTask.m */; };
+		A3D1F7081BFE033200E3D16F /* Task1.m in Sources */ = {isa = PBXBuildFile; fileRef = A3D1F7071BFE033200E3D16F /* Task1.m */; };
+		A3D1F70B1BFE034100E3D16F /* Task2.m in Sources */ = {isa = PBXBuildFile; fileRef = A3D1F70A1BFE034100E3D16F /* Task2.m */; };
+		A3D1F70E1BFE034D00E3D16F /* Task3.m in Sources */ = {isa = PBXBuildFile; fileRef = A3D1F70D1BFE034D00E3D16F /* Task3.m */; };
+		A3D1F7111BFE035900E3D16F /* Task4.m in Sources */ = {isa = PBXBuildFile; fileRef = A3D1F7101BFE035900E3D16F /* Task4.m */; };
+		A3D1F7141BFE036700E3D16F /* Task5.m in Sources */ = {isa = PBXBuildFile; fileRef = A3D1F7131BFE036700E3D16F /* Task5.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -48,6 +54,18 @@
 		A371C29E1BF0CACA00A7D4C7 /* TabBarServiceImpl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TabBarServiceImpl.h; sourceTree = "<group>"; };
 		A371C29F1BF0CACA00A7D4C7 /* TabBarServiceImpl.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TabBarServiceImpl.m; sourceTree = "<group>"; };
 		A371C2A11BF0CADC00A7D4C7 /* TabBarService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TabBarService.h; sourceTree = "<group>"; };
+		A3D1F7031BFDF1E700E3D16F /* ALTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALTask.h; sourceTree = "<group>"; };
+		A3D1F7041BFDF1E700E3D16F /* ALTask.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALTask.m; sourceTree = "<group>"; };
+		A3D1F7061BFE033200E3D16F /* Task1.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Task1.h; sourceTree = "<group>"; };
+		A3D1F7071BFE033200E3D16F /* Task1.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Task1.m; sourceTree = "<group>"; };
+		A3D1F7091BFE034100E3D16F /* Task2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Task2.h; sourceTree = "<group>"; };
+		A3D1F70A1BFE034100E3D16F /* Task2.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Task2.m; sourceTree = "<group>"; };
+		A3D1F70C1BFE034D00E3D16F /* Task3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Task3.h; sourceTree = "<group>"; };
+		A3D1F70D1BFE034D00E3D16F /* Task3.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Task3.m; sourceTree = "<group>"; };
+		A3D1F70F1BFE035900E3D16F /* Task4.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Task4.h; sourceTree = "<group>"; };
+		A3D1F7101BFE035900E3D16F /* Task4.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Task4.m; sourceTree = "<group>"; };
+		A3D1F7121BFE036700E3D16F /* Task5.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Task5.h; sourceTree = "<group>"; };
+		A3D1F7131BFE036700E3D16F /* Task5.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Task5.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,6 +115,16 @@
 				A371C29E1BF0CACA00A7D4C7 /* TabBarServiceImpl.h */,
 				A371C29F1BF0CACA00A7D4C7 /* TabBarServiceImpl.m */,
 				A371C2A11BF0CADC00A7D4C7 /* TabBarService.h */,
+				A3D1F7061BFE033200E3D16F /* Task1.h */,
+				A3D1F7071BFE033200E3D16F /* Task1.m */,
+				A3D1F7091BFE034100E3D16F /* Task2.h */,
+				A3D1F70A1BFE034100E3D16F /* Task2.m */,
+				A3D1F70C1BFE034D00E3D16F /* Task3.h */,
+				A3D1F70D1BFE034D00E3D16F /* Task3.m */,
+				A3D1F70F1BFE035900E3D16F /* Task4.h */,
+				A3D1F7101BFE035900E3D16F /* Task4.m */,
+				A3D1F7121BFE036700E3D16F /* Task5.h */,
+				A3D1F7131BFE036700E3D16F /* Task5.m */,
 			);
 			path = AppLordDemo;
 			sourceTree = "<group>";
@@ -121,6 +149,8 @@
 				A371C2921BF0C19900A7D4C7 /* ALModule.h */,
 				A371C2931BF0C19900A7D4C7 /* ALService.h */,
 				A371C2941BF0C19900A7D4C7 /* AppLord.h */,
+				A3D1F7031BFDF1E700E3D16F /* ALTask.h */,
+				A3D1F7041BFDF1E700E3D16F /* ALTask.m */,
 			);
 			name = AppLord;
 			path = ../../AppLord;
@@ -198,14 +228,20 @@
 			buildActionMask = 2147483647;
 			files = (
 				A371C27C1BF0C17200A7D4C7 /* SecondViewController.m in Sources */,
+				A3D1F70E1BFE034D00E3D16F /* Task3.m in Sources */,
 				A371C2981BF0C19900A7D4C7 /* ALEvent.m in Sources */,
 				A371C2761BF0C17200A7D4C7 /* AppDelegate.m in Sources */,
+				A3D1F70B1BFE034100E3D16F /* Task2.m in Sources */,
 				A371C2971BF0C19900A7D4C7 /* ALContextInfo.m in Sources */,
+				A3D1F7141BFE036700E3D16F /* Task5.m in Sources */,
 				A371C2961BF0C19900A7D4C7 /* ALContext.m in Sources */,
 				A371C29C1BF0C3E300A7D4C7 /* TabBarLauncherModule.m in Sources */,
 				A371C2A01BF0CACA00A7D4C7 /* TabBarServiceImpl.m in Sources */,
+				A3D1F7081BFE033200E3D16F /* Task1.m in Sources */,
+				A3D1F7051BFDF1E700E3D16F /* ALTask.m in Sources */,
 				A371C2791BF0C17200A7D4C7 /* FirstViewController.m in Sources */,
 				A371C2731BF0C17200A7D4C7 /* main.m in Sources */,
+				A3D1F7111BFE035900E3D16F /* Task4.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -267,7 +303,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -305,7 +341,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -317,6 +353,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				HEADER_SEARCH_PATHS = ../../;
 				INFOPLIST_FILE = AppLordDemo/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -329,6 +366,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				HEADER_SEARCH_PATHS = ../../;
 				INFOPLIST_FILE = AppLordDemo/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";

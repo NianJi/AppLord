@@ -11,6 +11,7 @@
 #import <AppLord/ALContextInfo.h>
 
 @protocol ALModule, ALService;
+@class ALTask;
 @interface ALContext : NSObject
 
 @property (nonatomic, strong, readonly) ALContextInfo *_Nonnull info;
@@ -28,9 +29,16 @@
 
 - (void)registService:(Protocol *_Nonnull)proto withImpl:(Class _Nonnull)implClass;
 - (void)registModule:(Class _Nonnull)moduleClass;
-- (void)destoryModule:(id _Nonnull)module;
 
-- (void)setupWithLaunchOptions:(NSDictionary *_Nullable)launchOptions;
+/**
+ *  初始化，在didFinishLaunching中调用
+ *  @param launchOptions 启动参数
+ *  @param launchTasks   启动任务项，格式参考 [{"name":"TestTask1", },...]
+ */
+- (void)setupWithLaunchOptions:(NSDictionary *_Nullable)launchOptions
+                    launchTask:(NSArray *_Nullable)launchTasks;
+
+- (void)addTask:(ALTask *_Nonnull)task;
 
 @end
 
