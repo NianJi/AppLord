@@ -9,6 +9,7 @@
 #import "ALContext.h"
 #import "ALModule.h"
 #import "ALService.h"
+#import "ALTask.h"
 
 @interface ALContext ()
 {
@@ -24,6 +25,8 @@
     NSRecursiveLock         *_observerLock;
     
     BOOL                     _finishedStart;
+    
+    NSOperationQueue        *_taskQueue;
 }
 
 @end
@@ -56,6 +59,9 @@
         _observerLock = [[NSRecursiveLock alloc] init];
         
         _info = [[ALContextInfo alloc] init];
+        
+        _taskQueue = [[NSOperationQueue alloc] init];
+        _taskQueue.name = @"AppLord.ALContext.TaskQueue";
     }
     return self;
 }
@@ -262,23 +268,58 @@
     }
 }
 
-- (void)destoryModule:(id<ALModule>)module
-{
-    NSParameterAssert(module != nil);
-    if ([module respondsToSelector:@selector(moduleWillDestory:)]) {
-        [module moduleWillDestory:self];
-    }
-    [_modulesByName removeObjectForKey:NSStringFromClass([module class])];
-}
+#pragma mark - setup
 
-#pragma mark - 
-
-- (void)setupWithLaunchOptions:(NSDictionary *)launchOptions
+- (void)setupWithLaunchOptions:(NSDictionary *)launchOptions launchTask:(NSArray *)launchTasks
 {
     self.info.launchOptions = launchOptions;
     [self configurationModules];
     [self sendEventWithId:ALEventAppLaunching userInfo:launchOptions];
+    [self runLaunchTasks:launchTasks];
     _finishedStart = YES;
+}
+
+- (void)runLaunchTasks:(NSArray *)launchTasks
+{
+    if (launchTasks.count) {
+        
+        NSMutableArray *tasks = [[NSMutableArray alloc] init];
+        
+        NSMutableDictionary *taskMap = [[NSMutableDictionary alloc] init];
+        for (NSDictionary *taskInfo in launchTasks) {
+            NSAssert([taskInfo isKindOfClass:[NSDictionary class]], @"launchTasks config error");
+            
+            NSString *className = [taskInfo objectForKey:@"className"];
+            Class cls = NSClassFromString(className);
+            if (cls) {
+                
+                ALTask *task = [[cls alloc] init];
+                [tasks addObject:task];
+                [taskMap setObject:task forKey:className];
+                
+                //depedency
+                NSArray *dependencyList = [[taskInfo objectForKey:@"dependency"] componentsSeparatedByString:@","];
+                if (dependencyList.count) {
+                    for (NSString *depedencyClass in dependencyList) {
+                        ALTask *preTask = [taskMap objectForKey:depedencyClass];
+                        if (preTask) {
+                            [task addDependency:preTask];
+                        }
+                    }
+                }
+            }
+        }
+        
+        [_taskQueue addOperations:tasks waitUntilFinished:NO];
+    }
+}
+
+#pragma mark - task
+
+- (void)addTask:(ALTask *)task
+{
+    NSParameterAssert([task isKindOfClass:[ALTask class]]);
+    [_taskQueue addOperation:task];
 }
 
 @end

@@ -28,11 +28,6 @@
 @optional
 
 /**
- *  模块即将被销毁
- */
-- (void)moduleWillDestory:(ALContext *_Nonnull)context;
-
-/**
  *  接收到了全局的事件
  */
 - (void)moduleDidReceiveEvent:(ALEvent *_Nonnull)event;
