@@ -291,9 +291,9 @@
             
             NSString *className = [taskInfo objectForKey:@"className"];
             Class cls = NSClassFromString(className);
-            if (cls) {
+            if ([cls isSubclassOfClass:[NSOperation class]]) {
                 
-                ALTask *task = [[cls alloc] init];
+                NSOperation *task = [[cls alloc] init];
                 [tasks addObject:task];
                 [taskMap setObject:task forKey:className];
                 
@@ -301,7 +301,7 @@
                 NSArray *dependencyList = [[taskInfo objectForKey:@"dependency"] componentsSeparatedByString:@","];
                 if (dependencyList.count) {
                     for (NSString *depedencyClass in dependencyList) {
-                        ALTask *preTask = [taskMap objectForKey:depedencyClass];
+                        NSOperation *preTask = [taskMap objectForKey:depedencyClass];
                         if (preTask) {
                             [task addDependency:preTask];
                         }
@@ -316,9 +316,8 @@
 
 #pragma mark - task
 
-- (void)addTask:(ALTask *)task
+- (void)addTask:(NSOperation *)task
 {
-    NSParameterAssert([task isKindOfClass:[ALTask class]]);
     [_taskQueue addOperation:task];
 }
 

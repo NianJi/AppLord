@@ -38,7 +38,7 @@
 - (void)setupWithLaunchOptions:(NSDictionary *_Nullable)launchOptions
                     launchTask:(NSArray *_Nullable)launchTasks;
 
-- (void)addTask:(ALTask *_Nonnull)task;
+- (void)addTask:(NSOperation *_Nonnull)task;
 
 @end
 

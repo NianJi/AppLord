@@ -104,9 +104,7 @@ static inline BOOL ALTaskStateTransitionIsValid(ALTaskState fromState, ALTaskSta
         [self.lock unlock];
  
         if ([self needMainThread]) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [self executeTask];
-            });
+            [self performSelectorOnMainThread:@selector(executeTask) withObject:nil waitUntilDone:NO];
         } else {
             [self executeTask];
         }
@@ -129,6 +127,7 @@ static inline BOOL ALTaskStateTransitionIsValid(ALTaskState fromState, ALTaskSta
        
         NSLog(@"%@ finish", NSStringFromClass(self.class));
         if (error) {
+            self.error = error;
             self.state = ALTaskStateFailure;
         } else {
             self.state = ALTaskStateSuccessed;
@@ -176,16 +175,6 @@ static inline BOOL ALTaskStateTransitionIsValid(ALTaskState fromState, ALTaskSta
 - (BOOL)isExecuting
 {
     return self.state == ALTaskStateLoading;
-}
-
-- (BOOL)isSuccessed
-{
-    return self.state == ALTaskStateSuccessed;
-}
-
-- (BOOL)isLoadingOrSuccessed
-{
-    return self.state == ALTaskStateSuccessed || self.state == ALTaskStateLoading;
 }
 
 - (void)setState:(ALTaskState)state
