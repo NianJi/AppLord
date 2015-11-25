@@ -14,8 +14,10 @@
  */
 @interface ALTask : NSOperation
 
+@property (nonatomic, strong) NSError *error;
+
 /**
- *  need override, do the real job in this method, after finish, should call `finishWithError:`
+ *  require override, do the real job in this method, when finish, should call `finishWithError:`
  */
 - (void)executeTask;
 
