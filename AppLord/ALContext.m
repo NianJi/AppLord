@@ -10,23 +10,33 @@
 #import "ALModule.h"
 #import "ALService.h"
 #import "ALTask.h"
+#import <libkern/OSAtomic.h>
+
+#define LOCK(...) OSSpinLockLock(&_observerLock); \
+__VA_ARGS__; \
+OSSpinLockUnlock(&_observerLock);
+
+#define CLOCK(...) OSSpinLockLock(&_configLock); \
+__VA_ARGS__; \
+OSSpinLockUnlock(&_configLock);
 
 @interface ALContext ()
 {
     NSMutableDictionary     *_modulesByName;
     NSMutableDictionary     *_moduleClassesByName;
-    NSMutableDictionary     *_moduleClassesByInitEventId;
-    NSMutableDictionary     *_modulesByStartEventId;
 
     NSMutableDictionary     *_servicesByName;
     NSMutableDictionary     *_serviceClassesByName;
     
     NSMutableDictionary     *_observerSetsByEventId;
-    NSRecursiveLock         *_observerLock;
+    OSSpinLock              _observerLock;
     
     BOOL                     _finishedStart;
     
     NSOperationQueue        *_taskQueue;
+    
+    NSMutableDictionary     *_config;
+    OSSpinLock              _configLock;
 }
 
 @end
@@ -49,158 +59,23 @@
     if (self) {
         _modulesByName = [[NSMutableDictionary alloc] init];
         _moduleClassesByName = [[NSMutableDictionary alloc] init];
-        _moduleClassesByInitEventId = [[NSMutableDictionary alloc] init];
-        _modulesByStartEventId = [[NSMutableDictionary alloc] init];
 
         _servicesByName = [[NSMutableDictionary alloc] init];
         _serviceClassesByName = [[NSMutableDictionary alloc] init];
         
         _observerSetsByEventId = [[NSMutableDictionary alloc] init];
-        _observerLock = [[NSRecursiveLock alloc] init];
-        
-        _info = [[ALContextInfo alloc] init];
+        _observerLock = OS_SPINLOCK_INIT;
         
         _taskQueue = [[NSOperationQueue alloc] init];
         _taskQueue.name = @"AppLord.ALContext.TaskQueue";
+        
+        _config = [[NSMutableDictionary alloc] init];
+        _configLock = OS_SPINLOCK_INIT;
     }
     return self;
 }
 
-- (void)loadModulesWithEventId:(NSString *)eventId
-{
-    NSArray *initModules = [_moduleClassesByInitEventId objectForKey:eventId];
-    if (initModules.count) {
-        for (Class cls in initModules) {
-            NSString *key = NSStringFromClass(cls);
-            id<ALModule> module = [_modulesByName objectForKey:key];
-            if (!module) {
-                module = [[cls alloc] init];
-                [_modulesByName setObject:module forKey:key];
-                if ([module respondsToSelector:@selector(moduleDidInit:)]) {
-                    [module moduleDidInit:self];
-                }
-                
-                // make module record in start event
-                NSString *startEventId = _finishedStart ? nil : ALEventAppLaunching;
-                if ([cls resolveClassMethod:@selector(preferredStartEventId)]) {
-                    startEventId = [cls preferredStartEventId];
-                    NSParameterAssert(startEventId);
-                }
-                
-                if (startEventId) {
-                    NSMutableArray *startEventArray = [[_modulesByStartEventId objectForKey:startEventId] mutableCopy];
-                    if (!startEventArray) {
-                        startEventArray = [[NSMutableArray alloc] init];
-                    }
-                    [startEventArray addObject:module];
-                    [_modulesByStartEventId setObject:startEventArray.copy forKey:startEventId];
-                }
-                
-            }
-        }
-    }
-}
-
-- (void)startModulesWithEventId:(NSString *)eventId
-{
-    NSArray *startModules = [_modulesByStartEventId objectForKey:eventId];
-    if (startModules.count) {
-        for (id<ALModule> module in startModules) {
-            if ([module respondsToSelector:@selector(moduleStart:)]) {
-                [module moduleStart:self];
-            }
-        }
-        [_modulesByStartEventId removeObjectForKey:eventId];
-    }
-}
-
-- (id)findService:(Protocol *)serviceProtocol
-{
-    return [self findServiceByName:NSStringFromProtocol(serviceProtocol)];
-}
-
-- (id)findServiceByName:(NSString *)name
-{
-    id obj = [_servicesByName objectForKey:name];
-    if (obj) {
-        return obj;
-    } else {
-        Class cls = [_serviceClassesByName objectForKey:name];
-        if (cls) {
-            return [[cls alloc] init];
-        }
-    }
-    return nil;
-}
-
-- (id)findModule:(Class)moduleClass
-{
-    NSString *key = NSStringFromClass(moduleClass);
-    return [_modulesByName objectForKey:key];
-}
-
-- (void)sendEvent:(ALEvent *)event
-{
-    dispatch_block_t doSend = ^{
-        NSString *eventId = event.eventId;
-        
-        // 初始化module
-        [self loadModulesWithEventId:eventId];
-        // 开始module
-        [self startModulesWithEventId:eventId];
-        
-        // 发送事件
-        [_observerLock lock];
-        NSHashTable *observerSet = [[_observerSetsByEventId objectForKey:eventId] copy];
-        if (observerSet.count) {
-            [_observerLock unlock];
-            NSEnumerator *enumerator = observerSet.objectEnumerator;
-            id<ALModule> module = nil;
-            while ((module = enumerator.nextObject)) {
-                if ([module respondsToSelector:@selector(moduleDidReceiveEvent:)]) {
-                    [module moduleDidReceiveEvent:event];
-                }
-            }
-        } else if (observerSet) {
-            [_observerSetsByEventId removeObjectForKey:eventId];
-            [_observerLock unlock];
-        }
-    };
-    if ([NSThread isMainThread]) {
-        doSend();
-    } else {
-        dispatch_async(dispatch_get_main_queue(), doSend);
-    }
-}
-
-- (void)sendEventWithId:(NSString *)eventId userInfo:(NSDictionary *)userInfo
-{
-    ALEvent *event = [ALEvent eventWithId:eventId userInfo:userInfo];
-    [self sendEvent:event];
-}
-
-- (void)addEventObserver:(id)observer forEventId:(NSString *)eventId
-{
-    if (!observer || !eventId.length) {
-        return;
-    }
-    
-    [_observerLock lock];
-    NSHashTable *observerSet = [_observerSetsByEventId objectForKey:eventId];
-    if (!observerSet) {
-        observerSet = [[NSHashTable alloc] initWithOptions:NSPointerFunctionsWeakMemory capacity:0];
-        [_observerSetsByEventId setObject:observerSet forKey:eventId];
-    }
-    [observerSet addObject:observer];
-    [_observerLock unlock];
-}
-
-- (void)addEventObserver:(id)observer forEventIdArray:(NSArray *)eventIdArray
-{
-    for (NSString *eventId in eventIdArray) {
-        [self addEventObserver:observer forEventId:eventId];
-    }
-}
+#pragma mark - service
 
 - (void)registService:(Protocol *)proto withImpl:(Class)implClass
 {
@@ -232,6 +107,101 @@
     }
 }
 
+- (id)findService:(Protocol *)serviceProtocol
+{
+    return [self findServiceByName:NSStringFromProtocol(serviceProtocol)];
+}
+
+- (id)findServiceByName:(NSString *)name
+{
+    id obj = [_servicesByName objectForKey:name];
+    if (obj) {
+        return obj;
+    } else {
+        Class cls = [_serviceClassesByName objectForKey:name];
+        if (cls) {
+            return [[cls alloc] init];
+        }
+    }
+    return nil;
+}
+
+- (BOOL)existService:(NSString *)serviceName
+{
+    id obj = [_servicesByName objectForKey:serviceName];
+    if (obj) {
+        return YES;
+    } else {
+        Class cls = [_serviceClassesByName objectForKey:serviceName];
+        if (cls) {
+            return YES;
+        }
+    }
+    return NO;
+}
+
+#pragma mark - event
+
+- (void)sendEvent:(ALEvent *)event
+{
+    dispatch_block_t doSend = ^{
+        NSString *eventId = event.eventId;
+        
+        // 发送事件
+        LOCK(NSHashTable *observerSet = [[_observerSetsByEventId objectForKey:eventId] copy];)
+        if (observerSet.count) {
+            NSEnumerator *enumerator = observerSet.objectEnumerator;
+            id<ALModule> module = nil;
+            while ((module = enumerator.nextObject)) {
+                if ([module respondsToSelector:@selector(moduleDidReceiveEvent:)]) {
+                    [module moduleDidReceiveEvent:event];
+                }
+            }
+        } else if (observerSet) {
+            LOCK([_observerSetsByEventId removeObjectForKey:eventId];)
+        }
+    };
+    if ([NSThread isMainThread]) {
+        doSend();
+    } else {
+        dispatch_async(dispatch_get_main_queue(), doSend);
+    }
+}
+
+- (void)sendEventWithId:(NSString *)eventId userInfo:(NSDictionary *)userInfo
+{
+    ALEvent *event = [ALEvent eventWithId:eventId userInfo:userInfo];
+    [self sendEvent:event];
+}
+
+- (void)addEventObserver:(id)observer forEventId:(NSString *)eventId
+{
+    if (!observer || !eventId.length) {
+        return;
+    }
+    
+    LOCK(NSHashTable *observerSet = [_observerSetsByEventId objectForKey:eventId];)
+    if (!observerSet) {
+        observerSet = [[NSHashTable alloc] initWithOptions:NSPointerFunctionsWeakMemory capacity:0];
+        LOCK([_observerSetsByEventId setObject:observerSet forKey:eventId]);
+    }
+    [observerSet addObject:observer];
+}
+
+- (void)removeEventObserver:(id _Nonnull)observer forEventId:(NSString *_Nonnull)eventId
+{
+    if (!observer || !eventId.length) {
+        return;
+    }
+    
+    LOCK(NSHashTable *observerSet = [_observerSetsByEventId objectForKey:eventId];)
+    if (observerSet && [observerSet containsObject:observer]) {
+        [observerSet removeObject:self];
+    }
+}
+
+#pragma mark - module
+
 - (void)registModule:(Class)moduleClass
 {
     NSParameterAssert(moduleClass != nil);
@@ -248,82 +218,144 @@
     [_moduleClassesByName setObject:moduleClass forKey:key];
 }
 
-- (void)configurationModules
+- (id)findModule:(Class)moduleClass
 {
+    NSString *key = NSStringFromClass(moduleClass);
+    id<ALModule> module = [_modulesByName objectForKey:key];
+    if (!module) {
+        module = [self setupModuleWithClass:moduleClass];
+    }
+    return module;
+}
+
+- (id<ALModule>)setupModuleWithClass:(Class)moduleClass
+{
+    NSAssert([NSThread isMainThread], @"must run in main thread");
+    id<ALModule> module = [[moduleClass alloc] init];
+    [_modulesByName setObject:module forKey:NSStringFromClass(moduleClass)];
+    if ([module respondsToSelector:@selector(moduleDidInit:)]) {
+        [module moduleDidInit:self];
+    }
+    return module;
+}
+
+- (void)loadModules
+{
+    NSAssert([NSThread isMainThread], @"must run in main thread");
     NSArray *moduleClassArray = _moduleClassesByName.allValues;
     for (Class moduleClass in moduleClassArray) {
         
-        NSString *initEventId = ALEventAppLaunching;
-        if ([moduleClass resolveClassMethod:@selector(preferredInitEventId)]) {
-            initEventId = [moduleClass preferredInitEventId];
-            NSParameterAssert(initEventId);
-        }
-        
-        NSMutableArray *initEventArray = [[_moduleClassesByInitEventId objectForKey:initEventId] mutableCopy];
-        if (!initEventArray) {
-            initEventArray = [[NSMutableArray alloc] init];
-        }
-        [initEventArray addObject:moduleClass];
-        [_moduleClassesByInitEventId setObject:initEventArray.copy forKey:initEventId];
-    }
-}
-
-#pragma mark - setup
-
-- (void)setupWithLaunchOptions:(NSDictionary *)launchOptions launchTask:(NSArray *)launchTasks
-{
-    self.info.launchOptions = launchOptions;
-    [self configurationModules];
-    [self sendEventWithId:ALEventAppLaunching userInfo:launchOptions];
-    [self runLaunchTasks:launchTasks];
-    _finishedStart = YES;
-}
-
-- (void)runLaunchTasks:(NSArray *)launchTasks
-{
-    if (launchTasks.count) {
-        
-        NSMutableArray *tasks = [[NSMutableArray alloc] init];
-        
-        NSMutableDictionary *taskMap = [[NSMutableDictionary alloc] init];
-        for (NSDictionary *taskInfo in launchTasks) {
-            NSAssert([taskInfo isKindOfClass:[NSDictionary class]], @"launchTasks config error");
-            
-            NSString *className = [taskInfo objectForKey:@"className"];
-            Class cls = NSClassFromString(className);
-            if ([cls isSubclassOfClass:[NSOperation class]]) {
-                
-                NSOperation *task = [[cls alloc] init];
-                [tasks addObject:task];
-                [taskMap setObject:task forKey:className];
-                
-                //depedency
-                NSArray *dependencyList = [[taskInfo objectForKey:@"dependency"] componentsSeparatedByString:@","];
-                if (dependencyList.count) {
-                    for (NSString *depedencyClass in dependencyList) {
-                        NSOperation *preTask = [taskMap objectForKey:depedencyClass];
-                        if (preTask) {
-                            [task addDependency:preTask];
-                        }
-                    }
-                }
+        if ([moduleClass resolveClassMethod:@selector(loadWhenNeeded)]) {
+            BOOL lazyLoad = [moduleClass loadWhenNeeded];
+            if (lazyLoad) {
+                continue;
             }
         }
+        if ([moduleClass resolveClassMethod:@selector(loadAfterLaunch)]) {
+            
+            dispatch_async(dispatch_get_main_queue(), ^{
+                
+                [self setupModuleWithClass:moduleClass];
+            });
+            continue;
+        }
         
-        [_taskQueue addOperations:tasks waitUntilFinished:NO];
+        [self setupModuleWithClass:moduleClass];
     }
 }
 
 #pragma mark - task
+
+- (void)setMaxConcurrentOperationCount:(NSInteger)maxConcurrentOperationCount
+{
+    [_taskQueue setMaxConcurrentOperationCount:maxConcurrentOperationCount];
+}
+
+- (NSInteger)maxConcurrentOperationCount
+{
+    return _taskQueue.maxConcurrentOperationCount;
+}
+
+- (void)addSyncTasks:(NSArray<NSOperation *> *)tasks
+{
+    if ([tasks count]) {
+        __block BOOL syncRunFinish = NO;
+        NSOperationQueue *queue = [NSOperationQueue currentQueue];
+        NSInteger oldMaxConcurrentCount = queue.maxConcurrentOperationCount;
+        queue.maxConcurrentOperationCount = 1;
+        NSMutableArray *syncTasks = tasks.mutableCopy;
+        [syncTasks addObject:[NSBlockOperation blockOperationWithBlock:^{
+            syncRunFinish = YES;
+        }]];
+        [queue addOperations:syncTasks waitUntilFinished:NO];
+        while (!syncRunFinish) {
+            [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];
+        }
+        queue.maxConcurrentOperationCount = oldMaxConcurrentCount;
+    }
+}
+
+- (void)addAsyncTasks:(NSArray<NSOperation *> *)tasks
+{
+    if (tasks.count) {
+        [_taskQueue addOperations:tasks waitUntilFinished:NO];
+    }
+}
 
 - (void)addTask:(NSOperation *)task
 {
     [_taskQueue addOperation:task];
 }
 
-@end
+#pragma mark - config
 
-ALContext * ALContextGet()
+- (void)setObject:(id)value forKey:(NSString *)key
 {
-    return [ALContext sharedContext];
+    if (value && key) {
+        CLOCK([_config setObject:value forKey:key];)
+    }
 }
+
+- (id)objectForKey:(NSString *)key
+{
+    CLOCK(id object = [_config objectForKey:key]);
+    return object;
+}
+
+- (NSString *)stringForKey:(NSString *)key
+{
+    CLOCK(id object = [_config objectForKey:key]);
+    if ([object isKindOfClass:[NSString class]]) {
+        return object;
+    }
+    else if ([object isKindOfClass:[NSNumber class]]) {
+        return [object stringValue];
+    }
+    else {
+        return nil;
+    }
+}
+
+- (NSDictionary *)dictionaryForKey:(NSString *)key
+{
+    CLOCK(id object = [_config objectForKey:key]);
+    if ([object isKindOfClass:[NSDictionary class]]) {
+        return object;
+    }
+    else {
+        return nil;
+    }
+}
+
+- (NSArray *)arrayForKey:(NSString *)key
+{
+    CLOCK(id object = [_config objectForKey:key]);
+    if ([object isKindOfClass:[NSArray class]]) {
+        return object;
+    }
+    else {
+        return nil;
+    }
+}
+
+@end

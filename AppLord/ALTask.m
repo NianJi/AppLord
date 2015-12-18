@@ -104,7 +104,11 @@ static inline BOOL ALTaskStateTransitionIsValid(ALTaskState fromState, ALTaskSta
         [self.lock unlock];
  
         if ([self needMainThread]) {
-            [self performSelectorOnMainThread:@selector(executeTask) withObject:nil waitUntilDone:NO];
+            if ([NSThread isMainThread]) {
+                [self executeTask];
+            } else {
+                [self performSelectorOnMainThread:@selector(executeTask) withObject:nil waitUntilDone:NO];
+            }
         } else {
             [self executeTask];
         }
