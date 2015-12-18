@@ -15,13 +15,13 @@ AL_EXPORT_SERVICE(TabBarService);
 
 - (UITabBarController *)tabBarController
 {
-    TabBarLauncherModule *module = [ALContextGet() findModule:[TabBarLauncherModule class]];
+    TabBarLauncherModule *module = [[ALContext sharedContext] findModule:[TabBarLauncherModule class]];
     return module.tabBarController;
 }
 
 - (void)switchToTabIndex:(NSUInteger)index
 {
-    TabBarLauncherModule *module = [ALContextGet() findModule:[TabBarLauncherModule class]];
+    TabBarLauncherModule *module = [[ALContext sharedContext] findModule:[TabBarLauncherModule class]];
     [module.tabBarController setSelectedIndex:index];
 }
 

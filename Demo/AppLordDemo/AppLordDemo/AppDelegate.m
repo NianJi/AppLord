@@ -19,39 +19,86 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
     
+    [[ALContext sharedContext] loadModules];
+    
     NSArray *launchTasks = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"ALLaunchTasks"];
-    [ALContextGet() setupWithLaunchOptions:launchOptions launchTask:launchTasks];
+    if (launchTasks.count) {
+        
+        NSMutableArray *syncTasks = [[NSMutableArray alloc] init];
+        NSMutableArray *asyncTasks = [[NSMutableArray alloc] init];
+        
+        NSMutableDictionary *taskMap = [[NSMutableDictionary alloc] init];
+        for (NSDictionary *taskInfo in launchTasks) {
+            NSAssert([taskInfo isKindOfClass:[NSDictionary class]], @"launchTasks config error");
+            
+            NSString *className = [taskInfo objectForKey:@"className"];
+            BOOL isSync = [[taskInfo objectForKey:@"sync"] boolValue];
+            Class cls = NSClassFromString(className);
+            if ([cls isSubclassOfClass:[NSOperation class]]) {
+                
+                NSOperation *task = [[cls alloc] init];
+                if (isSync) {
+                    [syncTasks addObject:task];
+                } else {
+                    [asyncTasks addObject:task];
+                    [taskMap setObject:task forKey:className];
+                    //depedency
+                    NSArray *dependencyList = [[taskInfo objectForKey:@"dependency"] componentsSeparatedByString:@","];
+                    if (dependencyList.count) {
+                        for (NSString *depedencyClass in dependencyList) {
+                            NSOperation *preTask = [taskMap objectForKey:depedencyClass];
+                            if (preTask) {
+                                [task addDependency:preTask];
+                            }
+                        }
+                    }
+                }
+                
+            }
+        }
+        
+        if ([syncTasks count]) {
+            [[ALContext sharedContext] addSyncTasks:syncTasks];
+        }
+        
+        if (asyncTasks.count) {
+            [[ALContext sharedContext] addAsyncTasks:asyncTasks];
+        }
+    }
+    
+    [[ALContext sharedContext] sendEventWithId:ALEventAppLaunching userInfo:launchOptions];
+    [[ALContext sharedContext] setObject:launchOptions forKey:@"ALLaunchOptionsKey"];
     return YES;
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application {
     // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
     // Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
-    [ALContextGet() sendEventWithId:ALEventAppWillResignActive userInfo:nil];
+    [[ALContext sharedContext] sendEventWithId:ALEventAppWillResignActive userInfo:nil];
 }
 
 - (void)applicationDidEnterBackground:(UIApplication *)application {
     // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
     // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
-    [ALContextGet() sendEventWithId:ALEventAppDidEnterBackground userInfo:nil];
+    [[ALContext sharedContext] sendEventWithId:ALEventAppDidEnterBackground userInfo:nil];
 
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application {
     // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
-    [ALContextGet() sendEventWithId:ALEventAppWillEnterForeground userInfo:nil];
+    [[ALContext sharedContext] sendEventWithId:ALEventAppWillEnterForeground userInfo:nil];
 
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application {
     // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
-    [ALContextGet() sendEventWithId:ALEventAppDidBecomeActive userInfo:nil];
+    [[ALContext sharedContext] sendEventWithId:ALEventAppDidBecomeActive userInfo:nil];
 
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application {
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
-    [ALContextGet() sendEventWithId:ALEventAppWillTerminate userInfo:nil];
+    [[ALContext sharedContext] sendEventWithId:ALEventAppWillTerminate userInfo:nil];
 
 }
 

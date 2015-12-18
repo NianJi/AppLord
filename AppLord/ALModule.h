@@ -16,28 +16,26 @@
 @protocol ALModule <NSObject>
 
 /**
- *  模块被创建，一般来说app启动后就会创建
+ *  module did create
  */
 - (void)moduleDidInit:(ALContext *_Nonnull)context;
-
-/**
- *  模块开始执行自己的事务
- */
-- (void)moduleStart:(ALContext *_Nonnull)context;
 
 @optional
 
 /**
- *  接收到了全局的事件
+ *  receive a event
  */
 - (void)moduleDidReceiveEvent:(ALEvent *_Nonnull)event;
 
 /**
- *  这两个是配置方法，默认module在ALEventAppFirstLoad时执行 init 和 start，
- *  如果没有必要在启动就初始化或开始运行，那么就可以在这里配置接收到特定的eventId事件时才init或者start.
+ *  config when load this module, init when it's first used
  */
-+ (NSString *_Nonnull)preferredInitEventId;
-+ (NSString *_Nonnull)preferredStartEventId;
++ (BOOL)loadWhenNeeded;
+
+/**
+ *  config when load this module, init when main thread is idle
+ */
++ (BOOL)loadAfterLaunch;
 
 @end
 

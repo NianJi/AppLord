@@ -56,6 +56,8 @@
 		<dict>
 			<key>className</key>
 			<string>Task1</string>
+			<key>sync</key>
+			<true/>
 		</dict>
 		<dict>
 			<key>className</key>

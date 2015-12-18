@@ -33,14 +33,8 @@ AL_EXPORT_MODULE
     }
     self.tabBarController.viewControllers = vcArray.copy;
     
-}
-
-- (void)moduleStart:(ALContext *)context
-{
     self.window.rootViewController = self.tabBarController;
     [self.window makeKeyAndVisible];
-    
-    [[ALContext sharedContext] addEventObserver:self forEventId:ALEventAppDidBecomeActive];
 }
 
 - (void)moduleDidReceiveEvent:(ALEvent *)event

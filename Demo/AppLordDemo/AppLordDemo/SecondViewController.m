@@ -29,7 +29,7 @@
 
 - (void)buttonTapped:(id)sender
 {
-    TTabBarService service = [ALContextGet() findService:@protocol(TabBarService)];
+    TTabBarService service = [[ALContext sharedContext] findService:@protocol(TabBarService)];
     [service switchToTabIndex:0];
 }
 
