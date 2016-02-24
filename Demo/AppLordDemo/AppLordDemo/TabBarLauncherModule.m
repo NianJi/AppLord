@@ -37,9 +37,5 @@ AL_EXPORT_MODULE
     [self.window makeKeyAndVisible];
 }
 
-- (void)moduleDidReceiveEvent:(ALEvent *)event
-{
-    NSLog(@"Receive event: %@", event.eventId);
-}
 
 @end

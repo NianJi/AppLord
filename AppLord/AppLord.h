@@ -19,5 +19,4 @@ FOUNDATION_EXPORT const unsigned char AppLordVersionString[];
 
 #import <AppLord/ALModule.h>
 #import <AppLord/ALService.h>
-#import <AppLord/ALEvent.h>
 #import <AppLord/ALContext.h>

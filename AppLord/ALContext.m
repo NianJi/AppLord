@@ -12,10 +12,6 @@
 #import "ALTask.h"
 #import <libkern/OSAtomic.h>
 
-#define LOCK(...) OSSpinLockLock(&_observerLock); \
-__VA_ARGS__; \
-OSSpinLockUnlock(&_observerLock);
-
 #define CLOCK(...) OSSpinLockLock(&_configLock); \
 __VA_ARGS__; \
 OSSpinLockUnlock(&_configLock);
@@ -140,66 +136,6 @@ OSSpinLockUnlock(&_configLock);
     return NO;
 }
 
-#pragma mark - event
-
-- (void)sendEvent:(ALEvent *)event
-{
-    dispatch_block_t doSend = ^{
-        NSString *eventId = event.eventId;
-        
-        // 发送事件
-        LOCK(NSHashTable *observerSet = [[_observerSetsByEventId objectForKey:eventId] copy];)
-        if (observerSet.count) {
-            NSEnumerator *enumerator = observerSet.objectEnumerator;
-            id<ALModule> module = nil;
-            while ((module = enumerator.nextObject)) {
-                if ([module respondsToSelector:@selector(moduleDidReceiveEvent:)]) {
-                    [module moduleDidReceiveEvent:event];
-                }
-            }
-        } else if (observerSet) {
-            LOCK([_observerSetsByEventId removeObjectForKey:eventId];)
-        }
-    };
-    if ([NSThread isMainThread]) {
-        doSend();
-    } else {
-        dispatch_async(dispatch_get_main_queue(), doSend);
-    }
-}
-
-- (void)sendEventWithId:(NSString *)eventId userInfo:(NSDictionary *)userInfo
-{
-    ALEvent *event = [ALEvent eventWithId:eventId userInfo:userInfo];
-    [self sendEvent:event];
-}
-
-- (void)addEventObserver:(id)observer forEventId:(NSString *)eventId
-{
-    if (!observer || !eventId.length) {
-        return;
-    }
-    
-    LOCK(NSHashTable *observerSet = [_observerSetsByEventId objectForKey:eventId];)
-    if (!observerSet) {
-        observerSet = [[NSHashTable alloc] initWithOptions:NSPointerFunctionsWeakMemory capacity:0];
-        LOCK([_observerSetsByEventId setObject:observerSet forKey:eventId]);
-    }
-    [observerSet addObject:observer];
-}
-
-- (void)removeEventObserver:(id _Nonnull)observer forEventId:(NSString *_Nonnull)eventId
-{
-    if (!observer || !eventId.length) {
-        return;
-    }
-    
-    LOCK(NSHashTable *observerSet = [_observerSetsByEventId objectForKey:eventId];)
-    if (observerSet && [observerSet containsObject:observer]) {
-        [observerSet removeObject:self];
-    }
-}
-
 #pragma mark - module
 
 - (void)registModule:(Class)moduleClass
@@ -245,12 +181,6 @@ OSSpinLockUnlock(&_configLock);
     NSArray *moduleClassArray = _moduleClassesByName.allValues;
     for (Class moduleClass in moduleClassArray) {
         
-        if ([moduleClass resolveClassMethod:@selector(loadWhenNeeded)]) {
-            BOOL lazyLoad = [moduleClass loadWhenNeeded];
-            if (lazyLoad) {
-                continue;
-            }
-        }
         if ([moduleClass resolveClassMethod:@selector(loadAfterLaunch)]) {
             
             dispatch_async(dispatch_get_main_queue(), ^{
@@ -274,25 +204,6 @@ OSSpinLockUnlock(&_configLock);
 - (NSInteger)maxConcurrentOperationCount
 {
     return _taskQueue.maxConcurrentOperationCount;
-}
-
-- (void)addSyncTasks:(NSArray<NSOperation *> *)tasks
-{
-    if ([tasks count]) {
-        __block BOOL syncRunFinish = NO;
-        NSOperationQueue *queue = [NSOperationQueue currentQueue];
-        NSInteger oldMaxConcurrentCount = queue.maxConcurrentOperationCount;
-        queue.maxConcurrentOperationCount = 1;
-        NSMutableArray *syncTasks = tasks.mutableCopy;
-        [syncTasks addObject:[NSBlockOperation blockOperationWithBlock:^{
-            syncRunFinish = YES;
-        }]];
-        [queue addOperations:syncTasks waitUntilFinished:NO];
-        while (!syncRunFinish) {
-            [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];
-        }
-        queue.maxConcurrentOperationCount = oldMaxConcurrentCount;
-    }
 }
 
 - (void)addAsyncTasks:(NSArray<NSOperation *> *)tasks
