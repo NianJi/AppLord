@@ -6,6 +6,8 @@ module and service management of ios app
 
 what is module? every business or task could be module.
 
+when the module init? when app launch or after app launch
+
 how to impl?
 
 first, create class:
@@ -25,33 +27,8 @@ AL_EXPORT_MODULE
 // module object init
 - (void)moduleDidInit:(ALContext *)context
 {
-        
+    // do some init thing
 }
-
-// module start it's business
-- (void)moduleStart:(ALContext *)context
-{
-    
-}
-
-// receive events from other module
-- (void)moduleDidReceiveEvent:(ALEvent *)context
-{
-
-}
-
-// module will init when receive event which id is this
-+ (ALEventId)preferredInitEventId
-{
-
-}
-    
-// module will start when receive event which id is this
-+ (ALEventId)preferredStartEventId
-{
-
-}
-
 
 @end
 ```
@@ -96,7 +73,10 @@ AL_EXPORT_SERVICE(MyService);
 ```
 
 How to get the instance of service?
+
 ```objc
-[ALContextGet() findServiceByName:@"MyService"];
+id<MyService> service = [[ALContext sharedContext] findServiceByName:@"MyService"];
+// or
+id<MyService> service = [[ALContext sharedContext] findService:@protocol(MyService)];
 ```
 

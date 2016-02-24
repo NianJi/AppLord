@@ -7,10 +7,8 @@
 //
 
 #import <Foundation/Foundation.h>
-#import <AppLord/ALEvent.h>
 
 @protocol ALModule, ALService;
-@class ALTask;
 @interface ALContext : NSObject
 
 /**
@@ -66,41 +64,12 @@
 
 @end
 
-@interface ALContext (Event)
-
-/**
- *  Send a event to observers. you can use this method send message to other modules
- */
-- (void)sendEvent:(ALEvent *_Nonnull)event;
-
-/**
- *  Send a event to observers.
- */
-- (void)sendEventWithId:(NSString *_Nonnull)eventId userInfo:(NSDictionary *_Nullable)userInfo;
-
-/**
- *  add observer for a event by eventId
- */
-- (void)addEventObserver:(id _Nonnull)observer forEventId:(NSString *_Nonnull)eventId;
-
-/**
- *  remove observer for a event by eventId
- */
-- (void)removeEventObserver:(id _Nonnull)observer forEventId:(NSString *_Nonnull)eventId;
-
-@end
-
 @interface ALContext (Task)
 
 /**
  *  the max concurrent of default operation queue
  */
 @property (nonatomic, assign) NSInteger maxConcurrentOperationCount;
-
-/**
- *  batch run tasks, sync on current thread. can't concurrent,serial
- */
-- (void)addSyncTasks:(NSArray<NSOperation *> *_Nonnull)tasks;
 
 /**
  *  batch run tasks, async on current thread.

@@ -23,16 +23,6 @@
 @optional
 
 /**
- *  receive a event
- */
-- (void)moduleDidReceiveEvent:(ALEvent *_Nonnull)event;
-
-/**
- *  config when load this module, init when it's first used
- */
-+ (BOOL)loadWhenNeeded;
-
-/**
  *  config when load this module, init when main thread is idle
  */
 + (BOOL)loadAfterLaunch;
