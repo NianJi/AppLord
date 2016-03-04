@@ -12,9 +12,9 @@
 #import "ALTask.h"
 #import <libkern/OSAtomic.h>
 
-#define CLOCK(...) OSSpinLockLock(&_configLock); \
+#define CLOCK(...) dispatch_semaphore_wait(_configLock, DISPATCH_TIME_FOREVER); \
 __VA_ARGS__; \
-OSSpinLockUnlock(&_configLock);
+dispatch_semaphore_signal(_configLock);
 
 @interface ALContext ()
 {
@@ -32,7 +32,7 @@ OSSpinLockUnlock(&_configLock);
     NSOperationQueue        *_taskQueue;
     
     NSMutableDictionary     *_config;
-    OSSpinLock              _configLock;
+    dispatch_semaphore_t     _configLock;
 }
 
 @end
@@ -66,7 +66,7 @@ OSSpinLockUnlock(&_configLock);
         _taskQueue.name = @"AppLord.ALContext.TaskQueue";
         
         _config = [[NSMutableDictionary alloc] init];
-        _configLock = OS_SPINLOCK_INIT;
+        _configLock = dispatch_semaphore_create(1);;
     }
     return self;
 }
