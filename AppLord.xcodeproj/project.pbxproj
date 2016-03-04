@@ -12,8 +12,6 @@
 		A371C2541BF07ABE00A7D4C7 /* ALContext.m in Sources */ = {isa = PBXBuildFile; fileRef = A371C2521BF07ABE00A7D4C7 /* ALContext.m */; };
 		A371C2571BF07ACC00A7D4C7 /* ALService.h in Headers */ = {isa = PBXBuildFile; fileRef = A371C2551BF07ACC00A7D4C7 /* ALService.h */; };
 		A371C25B1BF07ADD00A7D4C7 /* ALModule.h in Headers */ = {isa = PBXBuildFile; fileRef = A371C2591BF07ADD00A7D4C7 /* ALModule.h */; };
-		A371C25F1BF0836700A7D4C7 /* ALEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = A371C25D1BF0836700A7D4C7 /* ALEvent.h */; };
-		A371C2601BF0836700A7D4C7 /* ALEvent.m in Sources */ = {isa = PBXBuildFile; fileRef = A371C25E1BF0836700A7D4C7 /* ALEvent.m */; };
 		A3C7B2221C7DE4EC00C766BA /* ALTask.h in Headers */ = {isa = PBXBuildFile; fileRef = A3C7B2201C7DE4EC00C766BA /* ALTask.h */; };
 		A3C7B2231C7DE4EC00C766BA /* ALTask.m in Sources */ = {isa = PBXBuildFile; fileRef = A3C7B2211C7DE4EC00C766BA /* ALTask.m */; };
 /* End PBXBuildFile section */
@@ -26,8 +24,6 @@
 		A371C2521BF07ABE00A7D4C7 /* ALContext.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALContext.m; sourceTree = "<group>"; };
 		A371C2551BF07ACC00A7D4C7 /* ALService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALService.h; sourceTree = "<group>"; };
 		A371C2591BF07ADD00A7D4C7 /* ALModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALModule.h; sourceTree = "<group>"; };
-		A371C25D1BF0836700A7D4C7 /* ALEvent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALEvent.h; sourceTree = "<group>"; };
-		A371C25E1BF0836700A7D4C7 /* ALEvent.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALEvent.m; sourceTree = "<group>"; };
 		A3C7B2201C7DE4EC00C766BA /* ALTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALTask.h; sourceTree = "<group>"; };
 		A3C7B2211C7DE4EC00C766BA /* ALTask.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALTask.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -69,8 +65,6 @@
 				A371C2521BF07ABE00A7D4C7 /* ALContext.m */,
 				A371C2551BF07ACC00A7D4C7 /* ALService.h */,
 				A371C2591BF07ADD00A7D4C7 /* ALModule.h */,
-				A371C25D1BF0836700A7D4C7 /* ALEvent.h */,
-				A371C25E1BF0836700A7D4C7 /* ALEvent.m */,
 				A371C2471BF0798E00A7D4C7 /* Info.plist */,
 			);
 			path = AppLord;
@@ -85,7 +79,6 @@
 			files = (
 				A3C7B2221C7DE4EC00C766BA /* ALTask.h in Headers */,
 				A371C2461BF0798D00A7D4C7 /* AppLord.h in Headers */,
-				A371C25F1BF0836700A7D4C7 /* ALEvent.h in Headers */,
 				A371C2531BF07ABE00A7D4C7 /* ALContext.h in Headers */,
 				A371C2571BF07ACC00A7D4C7 /* ALService.h in Headers */,
 				A371C25B1BF07ADD00A7D4C7 /* ALModule.h in Headers */,
@@ -162,7 +155,6 @@
 			files = (
 				A371C2541BF07ABE00A7D4C7 /* ALContext.m in Sources */,
 				A3C7B2231C7DE4EC00C766BA /* ALTask.m in Sources */,
-				A371C2601BF0836700A7D4C7 /* ALEvent.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
