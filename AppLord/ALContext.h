@@ -8,38 +8,40 @@
 
 #import <Foundation/Foundation.h>
 
+NS_ASSUME_NONNULL_BEGIN
+
 @protocol ALModule, ALService;
 @interface ALContext : NSObject
 
 /**
  *  Get the singletion
  */
-+ (_Nonnull instancetype)sharedContext;
++ (instancetype)sharedContext;
 
 @end
 
 @interface ALContext (Service)
 
 /**
- *  Regist a service with it's implement class
+ *  Register a service with it's implement class
  */
-- (void)registService:(Protocol *_Nonnull)proto withImpl:(Class _Nonnull)implClass;
+- (void)registService:(Protocol *)proto withImpl:(Class)implClass;
 
 /**
  *  Find the service implement of the protocol, return nil if not regist, create instance
  *  if not create
  */
-- (__nullable id)findService:(Protocol *_Nonnull)serviceProtocol;
+- (__nullable id)findService:(Protocol *)serviceProtocol;
 
 /**
  *  Just like `findService`, but you can pass a service's class name
  */
-- (__nullable id)findServiceByName:(NSString *_Nonnull)name;
+- (__nullable id)findServiceByName:(NSString *)name;
 
 /**
  *  Figure out if a service is registed
  */
-- (BOOL)existService:(NSString *_Nonnull)serviceName;
+- (BOOL)existService:(NSString *)serviceName;
 
 
 @end
@@ -50,7 +52,7 @@
 /**
  *  regist a module with it's class name
  */
-- (void)registModule:(Class _Nonnull)moduleClass;
+- (void)registModule:(Class)moduleClass;
 
 /**
  *  init all the module registed
@@ -60,7 +62,7 @@
 /**
  *  Find the module instance
  */
-- (__nullable id)findModule:(Class _Nonnull)moduleClass;
+- (__nullable id)findModule:(Class)moduleClass;
 
 @end
 
@@ -74,22 +76,24 @@
 /**
  *  batch run tasks, async on current thread.
  */
-- (void)addAsyncTasks:(NSArray<NSOperation *> *_Nonnull)tasks;
+- (void)addAsyncTasks:(NSArray<NSOperation *> *)tasks;
 
 /**
  *  add a task in the default background operation queue.
  */
-- (void)addTask:(NSOperation *_Nonnull)task;
+- (void)addTask:(NSOperation *)task;
 
 @end
 
 @interface ALContext (Object)
 
-- (void)setObject:(id _Nonnull)value forKey:(NSString *_Nonnull)key;
-- (nullable id)objectForKey:(NSString *_Nonnull)key;
+- (void)setObject:(id _Nonnull)value forKey:(NSString *)key;
+- (nullable id)objectForKey:(NSString *)key;
 
-- (nullable NSString *)stringForKey:(NSString *_Nonnull)key;
-- (nullable NSDictionary *)dictionaryForKey:(NSString *_Nonnull)key;
-- (nullable NSArray *)arrayForKey:(NSString *_Nonnull)key;
+- (nullable NSString *)stringForKey:(NSString *)key;
+- (nullable NSDictionary *)dictionaryForKey:(NSString *)key;
+- (nullable NSArray *)arrayForKey:(NSString *)key;
 
 @end
+
+NS_ASSUME_NONNULL_END
