@@ -1,25 +1,27 @@
 Pod::Spec.new do |s|
   s.name         = "AppLord"
-  s.version      = "0.0.1"
-  s.summary      = "The load of iOS app"
+  s.version      = "1.1.1"
+  s.summary      = "The lord of iOS app modules"
 
   s.description  = <<-DESC
 
                    * Module: module management 
                    * Service Between modules 
-                   * event between modules 
+                   * Task manage global tasks
                    DESC
 
-  s.homepage     = "http://gitlab.cnbluebox.com/bluebox/AppLord"
+  s.platform     = :ios
+  s.ios.deployment_target = '6.0'
 
-  s.license      = "MIT (example)"
+  s.homepage     = "https://github.com/NianJi/AppLord"
+  s.license      = { :type => "MIT", :file => "LICENSE" }
 
   s.author             = { "念纪" => "765409243@qq.com" }
-  s.platform     = :ios, "6.0"
 
-  s.source       = { :git => "http://EXAMPLE/AppLord.git", :tag => "0.0.1" }
+  s.source       = { :git => "https://github.com/NianJi/AppLord.git", :tag => "1.1.1" }
   s.source_files  = "AppLord/**/*.{h,m}"
 
+  s.frameworks = 'Foundation', 'UIKit'
   s.requires_arc = true
 
 end
