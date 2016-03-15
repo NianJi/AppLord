@@ -13,12 +13,14 @@
 #define AL_EXPORT_MODULE \
 + (void)load { [[ALContext sharedContext] registModule:[self class]]; }
 
+NS_ASSUME_NONNULL_BEGIN
+
 @protocol ALModule <NSObject>
 
 /**
  *  module did create
  */
-- (void)moduleDidInit:(ALContext *_Nonnull)context;
+- (void)moduleDidInit:(ALContext *)context;
 
 @optional
 
@@ -29,3 +31,4 @@
 
 @end
 
+NS_ASSUME_NONNULL_END
