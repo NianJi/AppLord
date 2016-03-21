@@ -11,7 +11,7 @@
 
 #undef AL_EXPORT_MODULE
 #define AL_EXPORT_MODULE \
-+ (void)load { [[ALContext sharedContext] registModule:[self class]]; }
++ (void)load { [[ALContext sharedContext] registerModule:[self class]]; }
 
 NS_ASSUME_NONNULL_BEGIN
 
