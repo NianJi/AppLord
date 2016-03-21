@@ -10,7 +10,7 @@
 
 #undef AL_EXPORT_SERVICE
 #define AL_EXPORT_SERVICE(prot) \
-+ (void)load { [[ALContext sharedContext] registService:@protocol(prot) withImpl:[self class]]; }
++ (void)load { [[ALContext sharedContext] registerService:@protocol(prot) withImpl:[self class]]; }
 
 @protocol ALService <NSObject>
 

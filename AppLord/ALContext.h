@@ -25,10 +25,10 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  *  Register a service with it's implement class
  */
-- (void)registService:(Protocol *)proto withImpl:(Class)implClass;
+- (void)registerService:(Protocol *)proto withImpl:(Class)implClass;
 
 /**
- *  Find the service implement of the protocol, return nil if not regist, create instance
+ *  Find the service implement of the protocol, return nil if not registered, create instance
  *  if not create
  */
 - (__nullable id)findService:(Protocol *)serviceProtocol;
@@ -39,7 +39,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (__nullable id)findServiceByName:(NSString *)name;
 
 /**
- *  Figure out if a service is registed
+ *  Figure out if a service is registered
  */
 - (BOOL)existService:(NSString *)serviceName;
 
@@ -50,12 +50,12 @@ NS_ASSUME_NONNULL_BEGIN
 @interface ALContext (Module)
 
 /**
- *  regist a module with it's class name
+ *  register a module with it's class name
  */
-- (void)registModule:(Class)moduleClass;
+- (void)registerModule:(Class)moduleClass;
 
 /**
- *  init all the module registed
+ *  init all the module registered
  */
 - (void)loadModules;
 
