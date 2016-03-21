@@ -73,7 +73,7 @@ dispatch_semaphore_signal(_configLock);
 
 #pragma mark - service
 
-- (void)registService:(Protocol *)proto withImpl:(Class)implClass
+- (void)registerService:(Protocol *)proto withImpl:(Class)implClass
 {
     NSParameterAssert(proto != nil);
     NSParameterAssert(implClass != nil);
@@ -138,7 +138,7 @@ dispatch_semaphore_signal(_configLock);
 
 #pragma mark - module
 
-- (void)registModule:(Class)moduleClass
+- (void)registerModule:(Class)moduleClass
 {
     NSParameterAssert(moduleClass != nil);
     
