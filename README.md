@@ -2,6 +2,12 @@
 
 module and service management of ios app
 
+## add to your project
+
+management by `cocoapods`,  use:
+
+    pod    'AppLord'
+
 ## module
 
 what is module? every business or task could be module.
