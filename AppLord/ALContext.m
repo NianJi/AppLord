@@ -18,11 +18,11 @@ dispatch_semaphore_signal(_configLock);
 
 @interface ALContext ()
 {
-    NSMutableDictionary     *_modulesByName;
-    NSMutableDictionary     *_moduleClassesByName;
+    NSMutableDictionary<NSString *, id<ALModule>>      *_modulesByName;
+    NSMutableDictionary<NSString *, Class<ALModule>>   *_moduleClassesByName;
 
-    NSMutableDictionary     *_servicesByName;
-    NSMutableDictionary     *_serviceClassesByName;
+    NSMutableDictionary<NSString *, id<ALService>>     *_servicesByName;
+    NSMutableDictionary<NSString *, Class<ALService>>  *_serviceClassesByName;
     
     NSMutableDictionary     *_observerSetsByEventId;
     OSSpinLock              _observerLock;
