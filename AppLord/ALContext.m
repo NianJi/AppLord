@@ -10,7 +10,6 @@
 #import "ALModule.h"
 #import "ALService.h"
 #import "ALTask.h"
-#import <libkern/OSAtomic.h>
 
 #define CLOCK(...) dispatch_semaphore_wait(_configLock, DISPATCH_TIME_FOREVER); \
 __VA_ARGS__; \
@@ -23,9 +22,6 @@ dispatch_semaphore_signal(_configLock);
 
     NSMutableDictionary<NSString *, id<ALService>>     *_servicesByName;
     NSMutableDictionary<NSString *, Class<ALService>>  *_serviceClassesByName;
-    
-    NSMutableDictionary     *_observerSetsByEventId;
-    OSSpinLock              _observerLock;
     
     BOOL                     _finishedStart;
     
@@ -58,9 +54,6 @@ dispatch_semaphore_signal(_configLock);
 
         _servicesByName = [[NSMutableDictionary alloc] init];
         _serviceClassesByName = [[NSMutableDictionary alloc] init];
-        
-        _observerSetsByEventId = [[NSMutableDictionary alloc] init];
-        _observerLock = OS_SPINLOCK_INIT;
         
         _taskQueue = [[NSOperationQueue alloc] init];
         _taskQueue.name = @"AppLord.ALContext.TaskQueue";
