@@ -9,10 +9,6 @@
 #import <Foundation/Foundation.h>
 #import <AppLord/ALContext.h>
 
-#undef AL_EXPORT_MODULE
-#define AL_EXPORT_MODULE \
-+ (void)load { [[ALContext sharedContext] registerModule:[self class]]; }
-
 NS_ASSUME_NONNULL_BEGIN
 
 @protocol ALModule <NSObject>

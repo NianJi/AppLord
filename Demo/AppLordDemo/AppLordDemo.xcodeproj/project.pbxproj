@@ -48,6 +48,7 @@
 		A371C29E1BF0CACA00A7D4C7 /* TabBarServiceImpl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TabBarServiceImpl.h; sourceTree = "<group>"; };
 		A371C29F1BF0CACA00A7D4C7 /* TabBarServiceImpl.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TabBarServiceImpl.m; sourceTree = "<group>"; };
 		A371C2A11BF0CADC00A7D4C7 /* TabBarService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TabBarService.h; sourceTree = "<group>"; };
+		A3B9D4471DDC0E5A00546C8C /* ALMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALMacros.h; sourceTree = "<group>"; };
 		A3D1F7031BFDF1E700E3D16F /* ALTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALTask.h; sourceTree = "<group>"; };
 		A3D1F7041BFDF1E700E3D16F /* ALTask.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALTask.m; sourceTree = "<group>"; };
 		A3D1F7061BFE033200E3D16F /* Task1.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Task1.h; sourceTree = "<group>"; };
@@ -134,6 +135,7 @@
 		A371C28B1BF0C19900A7D4C7 /* AppLord */ = {
 			isa = PBXGroup;
 			children = (
+				A3B9D4471DDC0E5A00546C8C /* ALMacros.h */,
 				A371C28C1BF0C19900A7D4C7 /* ALContext.h */,
 				A371C28D1BF0C19900A7D4C7 /* ALContext.m */,
 				A371C2921BF0C19900A7D4C7 /* ALModule.h */,

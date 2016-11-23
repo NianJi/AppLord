@@ -9,9 +9,8 @@
 #import "TabBarServiceImpl.h"
 #import "TabBarLauncherModule.h"
 
+@AppLordService(TabBarService, TabBarServiceImpl)
 @implementation TabBarServiceImpl
-
-AL_EXPORT_SERVICE(TabBarService);
 
 - (UITabBarController *)tabBarController
 {

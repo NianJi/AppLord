@@ -10,9 +10,8 @@
 #import "FirstViewController.h"
 #import "SecondViewController.h"
 
+@AppLordModule(TabBarLauncherModule)
 @implementation TabBarLauncherModule
-
-AL_EXPORT_MODULE
 
 - (void)moduleDidInit:(ALContext *)context
 {

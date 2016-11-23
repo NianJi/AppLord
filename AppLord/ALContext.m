@@ -10,6 +10,49 @@
 #import "ALModule.h"
 #import "ALService.h"
 #import "ALTask.h"
+#include <mach-o/getsect.h>
+#include <mach-o/loader.h>
+#include <mach-o/dyld.h>
+#include <dlfcn.h>
+
+NSArray<NSString *>* AppLordReadConfigFromSection(const char *sectionName){
+    
+#ifndef __LP64__
+    const struct mach_header *mhp = NULL;
+#else
+    const struct mach_header_64 *mhp = NULL;
+#endif
+    
+    NSMutableArray *configs = [NSMutableArray array];
+    Dl_info info;
+    if (mhp == NULL) {
+        dladdr(AppLordReadConfigFromSection, &info);
+#ifndef __LP64__
+        mhp = (struct mach_header*)info.dli_fbase;
+#else
+        mhp = (struct mach_header_64*)info.dli_fbase;
+#endif
+    }
+    
+#ifndef __LP64__
+    unsigned long size = 0;
+    uint32_t *memory = (uint32_t*)getsectiondata(mhp, SEG_DATA, sectionName, & size);
+#else /* defined(__LP64__) */
+    unsigned long size = 0;
+    uint64_t *memory = (uint64_t*)getsectiondata(mhp, SEG_DATA, sectionName, & size);
+#endif /* defined(__LP64__) */
+    
+    for(int idx = 0; idx < size/sizeof(void*); ++idx){
+        char *string = (char*)memory[idx];
+        
+        NSString *str = [NSString stringWithUTF8String:string];
+        if(!str)continue;
+        
+        if(str) [configs addObject:str];
+    }
+    
+    return configs;
+}
 
 #define CLOCK(...) dispatch_semaphore_wait(_configLock, DISPATCH_TIME_FOREVER); \
 __VA_ARGS__; \
@@ -60,8 +103,37 @@ dispatch_semaphore_signal(_configLock);
         
         _config = [[NSMutableDictionary alloc] init];
         _configLock = dispatch_semaphore_create(1);;
+        
+        [self readModuleAndServiceRegistedInSection];
     }
     return self;
+}
+
+- (void)readModuleAndServiceRegistedInSection
+{
+    NSArray<NSString *> *dataListInSection = AppLordReadConfigFromSection("AppLord");
+    for (NSString *item in dataListInSection) {
+        NSArray *components = [item componentsSeparatedByString:@":"];
+        if (components.count >= 2) {
+            NSString *type = components[0];
+            if ([type isEqualToString:@"M"]) {
+                NSString *modName = components[1];
+                Class modCls = NSClassFromString(modName);
+                if (modCls) {
+                    [self registerModule:modCls];
+                }
+            } else if ([type isEqualToString:@"S"] && components.count == 3) {
+                NSString *serName = components[1];
+                NSString *serImplName = components[1];
+                
+                Protocol *serPro = NSProtocolFromString(serName);
+                Class serCls = NSClassFromString(serImplName);
+                if (serPro && serCls) {
+                    [self registerService:serPro withImpl:serCls];
+                }
+            }
+        }
+    }
 }
 
 #pragma mark - service

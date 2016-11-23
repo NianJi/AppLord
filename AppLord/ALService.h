@@ -8,10 +8,6 @@
 
 #import <Foundation/Foundation.h>
 
-#undef AL_EXPORT_SERVICE
-#define AL_EXPORT_SERVICE(prot) \
-+ (void)load { [[ALContext sharedContext] registerService:@protocol(prot) withImpl:[self class]]; }
-
 @protocol ALService <NSObject>
 
 @optional
