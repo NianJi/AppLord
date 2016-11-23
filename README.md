@@ -26,9 +26,8 @@ first, create class:
 
 then, impl like this:
 ```objc
+@AppLordModule(MyModule) // Annotation for regist the module, required
 @implementation MyModule
-// regist the module, required
-AL_EXPORT_MODULE
 
 // module object init
 - (void)moduleDidInit:(ALContext *)context
@@ -59,10 +58,8 @@ Impl it
 
 @end
 
+@AppLordService(MyService, MyServiceImpl) // regist MyService's Impl class: MyServiceImpl
 @implementation MyServiceImpl
-
-// regist service
-AL_EXPORT_SERVICE(MyService);
 
 - (void)doSomething
 {
