@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = "AppLord"
-  s.version      = "1.1.2"
+  s.version      = "1.2.0"
   s.summary      = "The lord of iOS app modules"
 
   s.description  = <<-DESC
@@ -16,9 +16,9 @@ Pod::Spec.new do |s|
   s.homepage     = "https://github.com/NianJi/AppLord"
   s.license      = { :type => "MIT", :file => "LICENSE" }
 
-  s.author             = { "念纪" => "765409243@qq.com" }
+  s.author       = { "fengnianji" => "765409243@qq.com" }
 
-  s.source       = { :git => "https://github.com/NianJi/AppLord.git", :tag => "1.1.2" }
+  s.source       = { :git => "https://github.com/NianJi/AppLord.git", :tag => "1.2.0" }
   s.source_files  = "AppLord/**/*.{h,m}"
 
   s.frameworks = 'Foundation', 'UIKit'
