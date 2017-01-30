@@ -124,7 +124,7 @@ dispatch_semaphore_signal(_configLock);
                 }
             } else if ([type isEqualToString:@"S"] && components.count == 3) {
                 NSString *serName = components[1];
-                NSString *serImplName = components[1];
+                NSString *serImplName = components[2];
                 
                 Protocol *serPro = NSProtocolFromString(serName);
                 Class serCls = NSClassFromString(serImplName);
@@ -154,7 +154,7 @@ dispatch_semaphore_signal(_configLock);
     // Register Protocol
     NSString *protoName = NSStringFromProtocol(proto);
     if (protoName) {
-        if ([implClass resolveClassMethod:@selector(globalVisible)]) {
+        if ([implClass respondsToSelector:@selector(globalVisible)]) {
             BOOL isGlobal = [implClass globalVisible];
             if (isGlobal) {
                 id service = [[implClass alloc] init];
@@ -246,7 +246,7 @@ dispatch_semaphore_signal(_configLock);
     NSArray *moduleClassArray = _moduleClassesByName.allValues;
     for (Class moduleClass in moduleClassArray) {
         
-        if ([moduleClass resolveClassMethod:@selector(loadAfterLaunch)]) {
+        if ([moduleClass respondsToSelector:@selector(loadAfterLaunch)]) {
             
             dispatch_async(dispatch_get_main_queue(), ^{
                 
