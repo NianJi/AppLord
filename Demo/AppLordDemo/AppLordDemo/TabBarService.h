@@ -8,10 +8,10 @@
 
 #import <AppLord/AppLord.h>
 
-@protocol TabBarService <ALService>
+@protocol TabBarService <NSObject>
 
-- (UITabBarController *)tabBarController;
-- (void)switchToTabIndex:(NSUInteger)index;
+@property (nonatomic, strong) UITabBarController *tabBarController;
+@property (nonatomic, strong) UIWindow *window;
 
 
 @end

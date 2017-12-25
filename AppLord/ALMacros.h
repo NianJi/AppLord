@@ -14,15 +14,18 @@
 
 /**
  *  Use this to annotation a `module`
- *  like this: @AppLordModule()
+ *  like this: @AppLordModule(MyModule)
  */
 #define AppLordModule(modName) \
 protocol ALModule; \
-char * kAppLordModule_##modName ALAnnotationDATA = "M:"#modName"";
+static char * kAppLordModule_##modName ALAnnotationDATA = "M:"#modName"";
 
-
+/**
+ *  Use this to annotation a `service`
+ *  like this: @AppLordService(MyProtocol, MyClass)
+ */
 #define AppLordService(serviceName,cls) \
-protocol ALService; \
+protocol ALModule; \
 char * kAppLordService_##serviceName ALAnnotationDATA = "S:"#serviceName":"#cls"";
 
 #endif /* ALMocros_h */

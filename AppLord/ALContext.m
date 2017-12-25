@@ -8,12 +8,13 @@
 
 #import "ALContext.h"
 #import "ALModule.h"
-#import "ALService.h"
 #import "ALTask.h"
 #include <mach-o/getsect.h>
 #include <mach-o/loader.h>
 #include <mach-o/dyld.h>
 #include <dlfcn.h>
+
+NSString *const AppLordFirstIdleInMainNotification = @"AppLordFirstIdleInMainNotification";
 
 NSArray<NSString *>* AppLordReadConfigFromSection(const char *sectionName){
     
@@ -54,24 +55,23 @@ NSArray<NSString *>* AppLordReadConfigFromSection(const char *sectionName){
     return configs;
 }
 
-#define CLOCK(...) dispatch_semaphore_wait(_configLock, DISPATCH_TIME_FOREVER); \
-__VA_ARGS__; \
-dispatch_semaphore_signal(_configLock);
-
 @interface ALContext ()
 {
     NSMutableDictionary<NSString *, id<ALModule>>      *_modulesByName;
-    NSMutableDictionary<NSString *, Class<ALModule>>   *_moduleClassesByName;
-
-    NSMutableDictionary<NSString *, id<ALService>>     *_servicesByName;
-    NSMutableDictionary<NSString *, Class<ALService>>  *_serviceClassesByName;
+    
+    NSDictionary<NSString *, Class<ALService>>  *_serviceClassesByName;
+    NSMutableDictionary<NSString *, Class<ALService>>  *_serviceClassesByNameM;
     
     BOOL                     _finishedStart;
     
     NSOperationQueue        *_taskQueue;
     
     NSMutableDictionary     *_config;
-    dispatch_semaphore_t     _configLock;
+    dispatch_queue_t         _config_io_queue;
+    dispatch_queue_t         _module_io_queue;
+    
+    NSArray *_launchTasks;
+    NSMutableArray *_idleTasks;
 }
 
 @end
@@ -88,30 +88,28 @@ dispatch_semaphore_signal(_configLock);
     return context;
 }
 
-- (instancetype)init
+- (void)setUp
 {
-    self = [super init];
-    if (self) {
-        _modulesByName = [[NSMutableDictionary alloc] init];
-        _moduleClassesByName = [[NSMutableDictionary alloc] init];
-
-        _servicesByName = [[NSMutableDictionary alloc] init];
-        _serviceClassesByName = [[NSMutableDictionary alloc] init];
-        
-        _taskQueue = [[NSOperationQueue alloc] init];
-        _taskQueue.name = @"AppLord.ALContext.TaskQueue";
-        
-        _config = [[NSMutableDictionary alloc] init];
-        _configLock = dispatch_semaphore_create(1);;
-        
-        [self readModuleAndServiceRegistedInSection];
-    }
-    return self;
+    _modulesByName = [[NSMutableDictionary alloc] init];
+    
+    _serviceClassesByNameM = [[NSMutableDictionary alloc] init];
+    
+    _taskQueue = [[NSOperationQueue alloc] init];
+    _taskQueue.name = @"AppLord.ALContext.TaskQueue";
+    
+    _config = [[NSMutableDictionary alloc] init];
+    
+    _config_io_queue = dispatch_queue_create("AppLord.ALContext.configIOQueue", DISPATCH_QUEUE_CONCURRENT);
+    _module_io_queue = dispatch_queue_create("AppLord.ALContext.moduleIOQueue", DISPATCH_QUEUE_CONCURRENT);
+    [self readModuleAndServiceRegistedInSection];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(idleNotification:) name:AppLordFirstIdleInMainNotification object:nil];
 }
 
 - (void)readModuleAndServiceRegistedInSection
 {
     NSArray<NSString *> *dataListInSection = AppLordReadConfigFromSection("AppLord");
+    NSMutableDictionary *machoModules = [[NSMutableDictionary alloc] init];
+    NSMutableDictionary *machoServices = [[NSMutableDictionary alloc] init];
     for (NSString *item in dataListInSection) {
         NSArray *components = [item componentsSeparatedByString:@":"];
         if (components.count >= 2) {
@@ -120,7 +118,7 @@ dispatch_semaphore_signal(_configLock);
                 NSString *modName = components[1];
                 Class modCls = NSClassFromString(modName);
                 if (modCls) {
-                    [self registerModule:modCls];
+                    [machoModules setObject:modCls forKey:modName];
                 }
             } else if ([type isEqualToString:@"S"] && components.count == 3) {
                 NSString *serName = components[1];
@@ -129,10 +127,91 @@ dispatch_semaphore_signal(_configLock);
                 Protocol *serPro = NSProtocolFromString(serName);
                 Class serCls = NSClassFromString(serImplName);
                 if (serPro && serCls) {
-                    [self registerService:serPro withImpl:serCls];
+                    [machoServices setObject:serCls forKey:serName];
                 }
             }
         }
+    }
+    _serviceClassesByName = machoServices.copy;
+}
+
+#pragma mark - Launch
+
+- (void)setLaunchTasks:(NSArray *)launchTasks idleTasks:(NSArray *)idleTasks
+{
+    _launchTasks = launchTasks;
+    _idleTasks = idleTasks.mutableCopy;
+}
+
+- (void)launch
+{
+    if (_launchTasks.count) {
+        
+        NSMutableArray *syncTasks = [[NSMutableArray alloc] init];
+        NSMutableArray *asyncTasks = [[NSMutableArray alloc] init];
+        for (NSString *taskClsName in _launchTasks) {
+            Class<ALLaunchTask> taskCls = NSClassFromString(taskClsName);
+            if (taskCls) {
+                if ([taskCls respondsToSelector:@selector(launchTaskAsynchronous)] && [taskCls launchTaskAsynchronous]) {
+                    [asyncTasks addObject:taskCls];
+                } else {
+                    [syncTasks addObject:taskCls];
+                }
+            }
+        }
+        
+        // add operation
+        _taskQueue.maxConcurrentOperationCount = 2;
+        for (Class<ALLaunchTask> task in asyncTasks) {
+            [_taskQueue addOperationWithBlock:^{
+                if ([task respondsToSelector:@selector(appLaunch)]) {
+                    [task appLaunch];
+                }
+            }];
+        }
+        
+        // sync in main
+        for (Class<ALLaunchTask> task in syncTasks) {
+            if ([task respondsToSelector:@selector(appLaunch)]) {
+                [task appLaunch];
+            }
+        }
+        _launchTasks = nil;
+    }
+    
+    [self postNotificationWhenIdle];
+}
+
+- (void)postNotificationWhenIdle
+{
+    NSNotification *idleNotification = [NSNotification notificationWithName:AppLordFirstIdleInMainNotification object:nil];
+    [[NSNotificationQueue defaultQueue] enqueueNotification:idleNotification postingStyle:NSPostWhenIdle coalesceMask:NSNotificationCoalescingOnName forModes:@[NSDefaultRunLoopMode]];
+}
+
+- (void)idleNotification:(NSNotification *)notification
+{
+    if (_idleTasks.count) {
+        
+        NSString *taskName = [_idleTasks firstObject];
+        Class<ALIdleLaunchTask> taskCls = NSClassFromString(taskName);
+        if (taskCls) {
+            if ([taskCls respondsToSelector:@selector(launchTaskAsynchronous)] && [taskCls launchTaskAsynchronous]) {
+                [_taskQueue addOperationWithBlock:^{
+                    if ([taskCls respondsToSelector:@selector(appFirstIdle)]) {
+                        [taskCls appFirstIdle];
+                    }
+                }];
+            } else {
+                if ([taskCls respondsToSelector:@selector(appFirstIdle)]) {
+                    [taskCls appFirstIdle];
+                }
+            }
+        }
+        
+        [_idleTasks removeObjectAtIndex:0];
+        [self postNotificationWhenIdle];
+    } else {
+        _idleTasks = nil;
     }
 }
 
@@ -147,25 +226,13 @@ dispatch_semaphore_signal(_configLock);
         @throw [NSException exceptionWithName:NSInternalInconsistencyException reason:[NSString stringWithFormat:@"%@ 服务不符合 %@ 协议", NSStringFromClass(implClass), NSStringFromProtocol(proto)] userInfo:nil];
     }
     
-    if ([_servicesByName objectForKey:NSStringFromProtocol(proto)]) {
-        @throw [NSException exceptionWithName:NSInternalInconsistencyException reason:[NSString stringWithFormat:@"%@ 协议已经注册", NSStringFromProtocol(proto)] userInfo:nil];
-    }
-    
     // Register Protocol
-    NSString *protoName = NSStringFromProtocol(proto);
-    if (protoName) {
-        if ([implClass respondsToSelector:@selector(globalVisible)]) {
-            BOOL isGlobal = [implClass globalVisible];
-            if (isGlobal) {
-                id service = [[implClass alloc] init];
-                [_servicesByName setObject:service forKey:protoName];
-            } else {
-                [_serviceClassesByName setObject:implClass forKey:protoName];
-            }
-        } else {
-            [_serviceClassesByName setObject:implClass forKey:protoName];
+    dispatch_barrier_async(_module_io_queue, ^{
+        NSString *protoName = NSStringFromProtocol(proto);
+        if (protoName) {
+            [_serviceClassesByNameM setObject:implClass forKey:protoName];
         }
-    }
+    });
 }
 
 - (id)findService:(Protocol *)serviceProtocol
@@ -175,88 +242,72 @@ dispatch_semaphore_signal(_configLock);
 
 - (id)findServiceByName:(NSString *)name
 {
-    id obj = [_servicesByName objectForKey:name];
-    if (obj) {
-        return obj;
-    } else {
-        Class cls = [_serviceClassesByName objectForKey:name];
-        if (cls) {
-            return [[cls alloc] init];
+    __block Class cls = [_serviceClassesByName objectForKey:name];
+    if (!cls) {
+        dispatch_sync(_module_io_queue, ^{
+            cls = [_serviceClassesByNameM objectForKey:name];
+        });
+    }
+    if (cls) {
+        // a service could be a module
+        id service = [self findModule:cls];
+        if (!service) {
+            service = [[cls alloc] init];
         }
+        return service;
     }
     return nil;
 }
 
 - (BOOL)existService:(NSString *)serviceName
 {
-    id obj = [_servicesByName objectForKey:serviceName];
-    if (obj) {
+    __block Class cls = [_serviceClassesByName objectForKey:serviceName];
+    if (!cls) {
+        dispatch_sync(_module_io_queue, ^{
+            cls = [_serviceClassesByNameM objectForKey:serviceName];
+        });
+    }
+    if (cls) {
         return YES;
-    } else {
-        Class cls = [_serviceClassesByName objectForKey:serviceName];
-        if (cls) {
-            return YES;
-        }
     }
     return NO;
 }
 
 #pragma mark - module
 
-- (void)registerModule:(Class)moduleClass
-{
-    NSParameterAssert(moduleClass != nil);
-    
-    if (![moduleClass conformsToProtocol:@protocol(ALModule)]) {
-        @throw [NSException exceptionWithName:NSInternalInconsistencyException reason:[NSString stringWithFormat:@"%@ 模块不符合 ALModule 协议", NSStringFromClass(moduleClass)] userInfo:nil];
-    }
-    
-    if ([_moduleClassesByName objectForKey:NSStringFromClass(moduleClass)]) {
-        @throw [NSException exceptionWithName:NSInternalInconsistencyException reason:[NSString stringWithFormat:@"%@ 模块类已经注册", NSStringFromClass(moduleClass)] userInfo:nil];
-    }
-    
-    NSString *key = NSStringFromClass(moduleClass);
-    [_moduleClassesByName setObject:moduleClass forKey:key];
-}
-
 - (id)findModule:(Class)moduleClass
 {
     NSString *key = NSStringFromClass(moduleClass);
-    id<ALModule> module = [_modulesByName objectForKey:key];
+    __block id<ALModule> module = nil;
+    dispatch_sync(_module_io_queue, ^{
+        module =  [_modulesByName objectForKey:key];
+    });
     if (!module) {
         module = [self setupModuleWithClass:moduleClass];
     }
     return module;
 }
 
+- (id)findModuleByName:(NSString *)moduleName
+{
+    return [self findModule:NSClassFromString(moduleName)];
+}
+
 - (id<ALModule>)setupModuleWithClass:(Class)moduleClass
 {
-    NSAssert([NSThread isMainThread], @"must run in main thread");
     id<ALModule> module = [[moduleClass alloc] init];
-    [_modulesByName setObject:module forKey:NSStringFromClass(moduleClass)];
+    dispatch_barrier_async(_module_io_queue, ^{
+        [_modulesByName setObject:module forKey:NSStringFromClass(moduleClass)];
+    });
     if ([module respondsToSelector:@selector(moduleDidInit:)]) {
         [module moduleDidInit:self];
     }
     return module;
 }
 
-- (void)loadModules
+- (void)loadModule:(Class)moduleClass
 {
-    NSAssert([NSThread isMainThread], @"must run in main thread");
-    NSArray *moduleClassArray = _moduleClassesByName.allValues;
-    for (Class moduleClass in moduleClassArray) {
-        
-        if ([moduleClass respondsToSelector:@selector(loadAfterLaunch)]) {
-            
-            dispatch_async(dispatch_get_main_queue(), ^{
-                
-                [self setupModuleWithClass:moduleClass];
-            });
-            continue;
-        }
-        
-        [self setupModuleWithClass:moduleClass];
-    }
+    [self setupModuleWithClass:moduleClass];
 }
 
 #pragma mark - task
@@ -288,19 +339,24 @@ dispatch_semaphore_signal(_configLock);
 - (void)setObject:(id)value forKey:(NSString *)key
 {
     if (value && key) {
-        CLOCK([_config setObject:value forKey:key];)
+        dispatch_barrier_async(_config_io_queue, ^{
+            [_config setObject:value forKey:key];
+        });
     }
 }
 
 - (id)objectForKey:(NSString *)key
 {
-    CLOCK(id object = [_config objectForKey:key]);
+    __block id object;
+    dispatch_sync(_config_io_queue, ^{
+        object = [_config objectForKey:key];
+    });
     return object;
 }
 
 - (NSString *)stringForKey:(NSString *)key
 {
-    CLOCK(id object = [_config objectForKey:key]);
+    id object = [self objectForKey:key];
     if ([object isKindOfClass:[NSString class]]) {
         return object;
     }
@@ -314,7 +370,7 @@ dispatch_semaphore_signal(_configLock);
 
 - (NSDictionary *)dictionaryForKey:(NSString *)key
 {
-    CLOCK(id object = [_config objectForKey:key]);
+    id object = [self objectForKey:key];
     if ([object isKindOfClass:[NSDictionary class]]) {
         return object;
     }
@@ -325,7 +381,7 @@ dispatch_semaphore_signal(_configLock);
 
 - (NSArray *)arrayForKey:(NSString *)key
 {
-    CLOCK(id object = [_config objectForKey:key]);
+    id object = [self objectForKey:key];
     if ([object isKindOfClass:[NSArray class]]) {
         return object;
     }

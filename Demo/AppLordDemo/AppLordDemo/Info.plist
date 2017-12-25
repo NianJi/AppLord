@@ -53,36 +53,7 @@
 	</array>
 	<key>ALLaunchTasks</key>
 	<array>
-		<dict>
-			<key>className</key>
-			<string>Task1</string>
-			<key>sync</key>
-			<true/>
-		</dict>
-		<dict>
-			<key>className</key>
-			<string>Task2</string>
-			<key>dependency</key>
-			<string>Task1</string>
-		</dict>
-		<dict>
-			<key>className</key>
-			<string>Task3</string>
-			<key>dependency</key>
-			<string>Task1</string>
-		</dict>
-		<dict>
-			<key>className</key>
-			<string>Task4</string>
-			<key>dependency</key>
-			<string>Task2,Task3</string>
-		</dict>
-		<dict>
-			<key>className</key>
-			<string>Task5</string>
-			<key>dependency</key>
-			<string>Task4</string>
-		</dict>
+		<string>TabBarLauncherModule</string>
 	</array>
 </dict>
 </plist>

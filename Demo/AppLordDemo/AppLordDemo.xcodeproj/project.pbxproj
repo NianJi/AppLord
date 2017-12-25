@@ -16,7 +16,6 @@
 		A371C2841BF0C17200A7D4C7 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A371C2821BF0C17200A7D4C7 /* LaunchScreen.storyboard */; };
 		A371C2961BF0C19900A7D4C7 /* ALContext.m in Sources */ = {isa = PBXBuildFile; fileRef = A371C28D1BF0C19900A7D4C7 /* ALContext.m */; };
 		A371C29C1BF0C3E300A7D4C7 /* TabBarLauncherModule.m in Sources */ = {isa = PBXBuildFile; fileRef = A371C29B1BF0C3E300A7D4C7 /* TabBarLauncherModule.m */; };
-		A371C2A01BF0CACA00A7D4C7 /* TabBarServiceImpl.m in Sources */ = {isa = PBXBuildFile; fileRef = A371C29F1BF0CACA00A7D4C7 /* TabBarServiceImpl.m */; };
 		A3D1F7051BFDF1E700E3D16F /* ALTask.m in Sources */ = {isa = PBXBuildFile; fileRef = A3D1F7041BFDF1E700E3D16F /* ALTask.m */; };
 		A3D1F7081BFE033200E3D16F /* Task1.m in Sources */ = {isa = PBXBuildFile; fileRef = A3D1F7071BFE033200E3D16F /* Task1.m */; };
 		A3D1F70B1BFE034100E3D16F /* Task2.m in Sources */ = {isa = PBXBuildFile; fileRef = A3D1F70A1BFE034100E3D16F /* Task2.m */; };
@@ -41,12 +40,9 @@
 		A371C28C1BF0C19900A7D4C7 /* ALContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALContext.h; sourceTree = "<group>"; };
 		A371C28D1BF0C19900A7D4C7 /* ALContext.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALContext.m; sourceTree = "<group>"; };
 		A371C2921BF0C19900A7D4C7 /* ALModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALModule.h; sourceTree = "<group>"; };
-		A371C2931BF0C19900A7D4C7 /* ALService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALService.h; sourceTree = "<group>"; };
 		A371C2941BF0C19900A7D4C7 /* AppLord.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppLord.h; sourceTree = "<group>"; };
 		A371C29A1BF0C3E300A7D4C7 /* TabBarLauncherModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TabBarLauncherModule.h; sourceTree = "<group>"; };
 		A371C29B1BF0C3E300A7D4C7 /* TabBarLauncherModule.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TabBarLauncherModule.m; sourceTree = "<group>"; };
-		A371C29E1BF0CACA00A7D4C7 /* TabBarServiceImpl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TabBarServiceImpl.h; sourceTree = "<group>"; };
-		A371C29F1BF0CACA00A7D4C7 /* TabBarServiceImpl.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TabBarServiceImpl.m; sourceTree = "<group>"; };
 		A371C2A11BF0CADC00A7D4C7 /* TabBarService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TabBarService.h; sourceTree = "<group>"; };
 		A3B9D4471DDC0E5A00546C8C /* ALMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALMacros.h; sourceTree = "<group>"; };
 		A3D1F7031BFDF1E700E3D16F /* ALTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALTask.h; sourceTree = "<group>"; };
@@ -107,8 +103,6 @@
 				A371C2711BF0C17200A7D4C7 /* Supporting Files */,
 				A371C29A1BF0C3E300A7D4C7 /* TabBarLauncherModule.h */,
 				A371C29B1BF0C3E300A7D4C7 /* TabBarLauncherModule.m */,
-				A371C29E1BF0CACA00A7D4C7 /* TabBarServiceImpl.h */,
-				A371C29F1BF0CACA00A7D4C7 /* TabBarServiceImpl.m */,
 				A371C2A11BF0CADC00A7D4C7 /* TabBarService.h */,
 				A3D1F7061BFE033200E3D16F /* Task1.h */,
 				A3D1F7071BFE033200E3D16F /* Task1.m */,
@@ -139,7 +133,6 @@
 				A371C28C1BF0C19900A7D4C7 /* ALContext.h */,
 				A371C28D1BF0C19900A7D4C7 /* ALContext.m */,
 				A371C2921BF0C19900A7D4C7 /* ALModule.h */,
-				A371C2931BF0C19900A7D4C7 /* ALService.h */,
 				A371C2941BF0C19900A7D4C7 /* AppLord.h */,
 				A3D1F7031BFDF1E700E3D16F /* ALTask.h */,
 				A3D1F7041BFDF1E700E3D16F /* ALTask.m */,
@@ -226,7 +219,6 @@
 				A3D1F7141BFE036700E3D16F /* Task5.m in Sources */,
 				A371C2961BF0C19900A7D4C7 /* ALContext.m in Sources */,
 				A371C29C1BF0C3E300A7D4C7 /* TabBarLauncherModule.m in Sources */,
-				A371C2A01BF0CACA00A7D4C7 /* TabBarServiceImpl.m in Sources */,
 				A3D1F7081BFE033200E3D16F /* Task1.m in Sources */,
 				A3D1F7051BFDF1E700E3D16F /* ALTask.m in Sources */,
 				A371C2791BF0C17200A7D4C7 /* FirstViewController.m in Sources */,

@@ -18,12 +18,34 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (void)moduleDidInit:(ALContext *)context;
 
-@optional
+@end
+
+
+@protocol ALLaunchTask <NSObject>
 
 /**
- *  config when load this module, init when main thread is idle
+ *  AppLaunched
  */
-+ (BOOL)loadAfterLaunch;
++ (void)appLaunch;
+
+@optional
+/**
+ *  Can LaunchTask asynchronous load
+ */
++ (BOOL)launchTaskAsynchronous;
+
+@end
+
+
+@protocol ALIdleLaunchTask <NSObject>
+
++ (void)appFirstIdle;
+
+@optional
+/**
+ *  Can LaunchTask asynchronous load
+ */
++ (BOOL)launchTaskAsynchronous;
 
 @end
 

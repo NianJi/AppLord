@@ -9,9 +9,11 @@
 #import <Foundation/Foundation.h>
 #import <AppLord/AppLord.h>
 
-@interface TabBarLauncherModule : NSObject <ALModule>
+@interface TabBarLauncherModule : NSObject <ALModule, ALLaunchTask>
 
 @property (nonatomic, strong) UITabBarController *tabBarController;
 @property (nonatomic, strong) UIWindow *window;
+
+
 
 @end

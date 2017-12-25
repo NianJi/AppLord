@@ -30,7 +30,7 @@
 - (void)buttonTapped:(id)sender
 {
     TTabBarService service = [[ALContext sharedContext] findService:@protocol(TabBarService)];
-    [service switchToTabIndex:0];
+    service.tabBarController.selectedIndex = 0;
 }
 
 - (void)didReceiveMemoryWarning {

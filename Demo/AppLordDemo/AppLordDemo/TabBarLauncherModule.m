@@ -9,9 +9,20 @@
 #import "TabBarLauncherModule.h"
 #import "FirstViewController.h"
 #import "SecondViewController.h"
+#import "TabBarService.h"
 
-@AppLordModule(TabBarLauncherModule)
+@interface TabBarLauncherModule() <TabBarService>
+
+@end
+
+@AppLordModule(TabBarLauncherModule);
+@AppLordService(TabBarService, TabBarLauncherModule);
 @implementation TabBarLauncherModule
+
++ (void)appLaunch
+{
+    [[ALContext sharedContext] loadModule:self];
+}
 
 - (void)moduleDidInit:(ALContext *)context
 {

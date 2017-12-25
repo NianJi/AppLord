@@ -18,12 +18,26 @@ NS_ASSUME_NONNULL_BEGIN
  */
 + (instancetype)sharedContext;
 
+- (void)setUp;
+
+@end
+
+@interface ALContext (Launcher)
+
+- (void)setLaunchTasks:(NSArray<NSString *> *)launchTasks idleTasks:(NSArray<NSString *> *)idleTasks;
+
+/**
+ *  launch
+ */
+- (void)launch;
+
 @end
 
 @interface ALContext (Service)
 
 /**
- *  Register a service with it's implement class
+ *  Register a dynamic service with it's implement class.
+ *  other wise, use @AppLordService()
  */
 - (void)registerService:(Protocol *)proto withImpl:(Class)implClass;
 
@@ -50,23 +64,23 @@ NS_ASSUME_NONNULL_BEGIN
 @interface ALContext (Module)
 
 /**
- *  register a module with it's class name
+ *  init a module
  */
-- (void)registerModule:(Class)moduleClass;
-
-/**
- *  init all the module registered
- */
-- (void)loadModules;
+- (void)loadModule:(Class)moduleClass;
 
 /**
  *  Find the module instance
  */
 - (__nullable id)findModule:(Class)moduleClass;
 
+/**
+ *  Find the module instance
+ */
+- (__nullable id)findModuleByName:(NSString *)moduleName;
+
 @end
 
-@interface ALContext (Task)
+@interface ALContext (BackgroundTasks)
 
 /**
  *  the max concurrent of default operation queue

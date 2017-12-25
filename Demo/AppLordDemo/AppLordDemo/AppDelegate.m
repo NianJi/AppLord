@@ -20,50 +20,17 @@
     // Override point for customization after application launch.
     
     // 加载启动modules
-    [[ALContext sharedContext] loadModules];
-    
+    [[ALContext sharedContext] setUp];
     [[ALContext sharedContext] setObject:launchOptions forKey:@"ALLaunchOptionsKey"];
     
-    [self testTasksRun];
-    return YES;
-}
-
-- (void)testTasksRun
-{
+    
     NSArray *launchTasks = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"ALLaunchTasks"];
-    if (launchTasks.count) {
-        
-        NSMutableArray *asyncTasks = [[NSMutableArray alloc] init];
-        
-        NSMutableDictionary *taskMap = [[NSMutableDictionary alloc] init];
-        for (NSDictionary *taskInfo in launchTasks) {
-            NSAssert([taskInfo isKindOfClass:[NSDictionary class]], @"launchTasks config error");
-            
-            NSString *className = [taskInfo objectForKey:@"className"];
-            Class cls = NSClassFromString(className);
-            if ([cls isSubclassOfClass:[NSOperation class]]) {
-                
-                NSOperation *task = [[cls alloc] init];
-                [asyncTasks addObject:task];
-                [taskMap setObject:task forKey:className];
-                //depedency
-                NSArray *dependencyList = [[taskInfo objectForKey:@"dependency"] componentsSeparatedByString:@","];
-                if (dependencyList.count) {
-                    for (NSString *depedencyClass in dependencyList) {
-                        NSOperation *preTask = [taskMap objectForKey:depedencyClass];
-                        if (preTask) {
-                            [task addDependency:preTask];
-                        }
-                    }
-                }
-                
-            }
-        }
-        
-        if (asyncTasks.count) {
-            [[ALContext sharedContext] addAsyncTasks:asyncTasks];
-        }
-    }
+    NSArray *idleLaunchTasks = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"ALIdleLaunchTasks"];
+    
+    [[ALContext sharedContext] setLaunchTasks:launchTasks idleTasks:idleLaunchTasks];
+    
+    [[ALContext sharedContext] launch];
+    return YES;
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application {
